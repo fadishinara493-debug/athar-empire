@@ -20,7 +20,7 @@
         --prestige: #8b5cf6; --ad-color: #f97316;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent;}
-    body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding-bottom: 50px; }
 
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: flex; justify-content: center; align-items: center; padding: 20px; transition: 0.3s; }
     .hidden { opacity: 0; pointer-events: none; }
@@ -431,7 +431,6 @@ function manualClick(e) {
     updateUI();
 }
 
-// تعديل الدالة لمنع الشاشة الفاضية من التسبب بأخطاء
 function buyBuilding(id) {
     let b = BuildingsDB.find(x => x.id === id); if(!b) return;
     let c = getBuildingCost(b);
@@ -565,5 +564,18 @@ function gameLoop(currentTime) {
 const style = document.createElement('style'); style.innerHTML = `@keyframes flash { 0% { background: #fff; } 100% { background: var(--bg); } }`; document.head.appendChild(style);
 window.onload = initGame;
 </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-3574836580564688" crossorigin="anonymous"></script>
+
+<div style="position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; z-index: 9999;">
+    <ins class="adsbygoogle"
+         style="display:inline-block;width:320px;height:50px"
+         data-ad-client="ca-app-pub-3574836580564688"
+         data-ad-slot="6203058254"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</div>
+
 </body>
 </html>
