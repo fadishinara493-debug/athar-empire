@@ -3,20 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Athar Tycoon: Real Time Cycles</title>
+<title>Athar Tycoon: Secure Engine</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js');
+      navigator.serviceWorker.register('sw.js').catch(e => {});
     });
   }
 </script>
 <style>
     :root {
         --bg: #09090b; --panel: #18181b; --card: #27272a; --text: #f8fafc;
-        --primary: #10b981; --accent: #3b82f6; --gold: #fbbf24; --danger: #ef4444; 
+        --primary: #10b981; --primary-glow: rgba(16, 185, 129, 0.4);
+        --accent: #3b82f6; --gold: #fbbf24; --danger: #ef4444; 
         --prestige: #8b5cf6; --ad-color: #f97316;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent;}
@@ -34,10 +35,14 @@
     .btn-prestige { background: linear-gradient(45deg, #8b5cf6, #d946ef); color: white; border: none; }
 
     .header { background: rgba(24, 24, 27, 0.98); padding: 15px 20px; text-align: center; border-bottom: 2px solid var(--primary); z-index: 10; position: relative;}
-    .company-name { font-size: 15px; color: var(--accent); font-weight: 900; margin-bottom: 5px; text-transform: uppercase;}
+    .company-name { font-size: 15px; color: var(--accent); font-weight: 900; margin-bottom: 5px; text-transform: uppercase; cursor: pointer;}
     .net-worth { font-size: 38px; font-weight: 900; color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 5px; text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);}
     .income-rate { font-size: 14px; color: var(--gold); font-weight: 900; background: rgba(251, 191, 36, 0.15); display: inline-block; padding: 5px 20px; border-radius: 20px; margin-top: 5px; border: 1px solid rgba(251, 191, 36, 0.3); }
     
+    .news-ticker { width: 100%; background: rgba(0, 0, 0, 0.4); padding: 5px 10px; font-size: 11px; color: var(--gold); overflow: hidden; white-space: nowrap; border-radius: 6px; margin-top: 6px; }
+    .news-text { display: inline-block; padding-left: 100%; animation: ticker 28s linear infinite; font-weight: bold;}
+    @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+
     .boosts-container { display: flex; justify-content: center; gap: 10px; margin-top: 10px; height: 25px;}
     .boost-badge { font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 10px; display: none; }
     .boost-badge.active { display: block; animation: pulse 1.5s infinite; }
@@ -45,13 +50,15 @@
     .badge-auto { background: rgba(59, 130, 246, 0.2); color: var(--accent); border: 1px solid var(--accent); }
     @keyframes pulse { 50% { opacity: 0.6; } }
 
-    .clicker-section { height: 30vh; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden;}
-    .main-btn { width: 160px; height: 160px; border-radius: 50%; background: linear-gradient(135deg, #059669, #064e3b); border: 6px solid var(--primary); box-shadow: 0 0 50px rgba(16, 185, 129, 0.4), inset 0 0 30px rgba(255,255,255,0.3); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.05s; z-index: 5; }
-    .main-btn:active { transform: scale(0.92); box-shadow: 0 0 25px rgba(16, 185, 129, 0.9); }
-    .main-btn h2 { font-size: 28px; margin-bottom: 5px; text-shadow: 0 3px 5px rgba(0,0,0,0.6); }
+    .clicker-section { height: 25vh; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden;}
+    .main-btn { width: 140px; height: 140px; border-radius: 50%; background: linear-gradient(135deg, #059669, #064e3b); border: 6px solid var(--primary); box-shadow: 0 0 40px rgba(16, 185, 129, 0.4), inset 0 0 20px rgba(255,255,255,0.3); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.05s; z-index: 5; }
+    .main-btn h2 { font-size: 26px; margin-bottom: 5px; text-shadow: 0 3px 5px rgba(0,0,0,0.6); }
     
-    .floating-text { position: absolute; font-size: 22px; font-weight: 900; color: var(--primary); pointer-events: none; animation: floatUp 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; z-index: 100; }
-    @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-100px) scale(1.8); opacity: 0; } }
+    .floating-text { position: absolute; font-size: 22px; font-weight: 900; color: var(--primary); pointer-events: none; animation: floatUp 0.65s forwards; z-index: 100; }
+    @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-70px) scale(1.4); opacity: 0; } }
+    .particle { position: absolute; pointer-events: none; width: 14px; height: 14px; background: #fbbf24; border-radius: 50%; box-shadow: 0 0 6px #fbbf24; z-index: 99; animation: particleAnim 0.6s cubic-bezier(0.1, 0.8, 0.25, 1) forwards; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; color: #000;}
+    @keyframes particleAnim { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(0.4); opacity: 0; } }
+
     .drone { position: absolute; top: 20%; left: -100px; font-size: 45px; cursor: pointer; z-index: 50; transition: transform 0.1s; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5)); }
 
     .tabs-nav { display: flex; background: var(--panel); border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom: 1px solid #3f3f46; box-shadow: 0 -10px 20px rgba(0,0,0,0.3); z-index: 10;}
@@ -62,12 +69,11 @@
     .tab-btn.prestige-tab { color: var(--prestige); }
     .tab-btn.prestige-tab.active { border-bottom-color: var(--prestige); background: rgba(139, 92, 246, 0.08); }
 
-    .tab-content { flex: 1; background: var(--panel); overflow-y: auto; padding: 15px; display: none; padding-bottom: 50px;}
+    .tab-content { flex: 1; background: var(--panel); overflow-y: auto; padding: 15px; display: none; padding-bottom: 85px;}
     .tab-content.active { display: block; }
     
     .item-card { background: var(--card); border: 1px solid #3f3f46; border-radius: 15px; padding: 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; position: relative; overflow: hidden; }
-    .item-card.disabled { opacity: 0.6; filter: grayscale(80%); }
-    .item-card:active:not(.disabled):not(.noclick) { transform: scale(0.97); }
+    .item-card.disabled { opacity: 0.45; filter: grayscale(50%); pointer-events: none; }
     .premium-card { border-color: var(--ad-color); background: rgba(249, 115, 22, 0.05); flex-direction: column; text-align: center; }
     
     .item-icon { font-size: 30px; min-width: 60px; height: 60px; background: rgba(0,0,0,0.4); border-radius: 12px; display: flex; justify-content: center; align-items: center; z-index: 2; border: 1px solid #52525b;}
@@ -82,7 +88,7 @@
     
     .milestone-bar { width: 100%; height: 5px; background: #000; border-radius: 3px; margin-top: 5px; overflow: hidden; position: relative;}
     .milestone-fill { height: 100%; background: var(--gold); transition: width 0.3s ease;}
-    .working-bg { position: absolute; top: 0; left: 0; height: 100%; background: linear-gradient(90deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0) 100%); z-index: 1; width: 0%; pointer-events: none; transition: width 0.1s linear;}
+    .working-bg { position: absolute; top: 0; left: 0; height: 100%; background: linear-gradient(90deg, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0) 100%); z-index: 1; width: 0%; pointer-events: none;}
     
     .prestige-panel { background: #000; border: 2px solid var(--prestige); padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 0 30px rgba(139, 92, 246, 0.2); }
     .share-count { font-size: 36px; color: var(--prestige); font-weight: 900; margin: 10px 0; text-shadow: 0 0 15px var(--prestige); }
@@ -90,7 +96,7 @@
     #adSimulator { background: #000; flex-direction: column; z-index: 4000;}
     .ad-timer { font-size: 60px; color: #fff; font-weight: 900; margin: 20px 0; }
     
-    .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #000; padding: 10px 20px; border-radius: 20px; font-weight: bold; z-index: 2000; opacity: 0; transition: 0.3s; pointer-events: none; }
+    .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #000; padding: 12px 24px; border-radius: 20px; font-weight: bold; z-index: 5000; opacity: 0; transition: 0.3s; pointer-events: none; border: 2px solid #000; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
     .toast.show { opacity: 1; bottom: 100px; }
 </style>
 </head>
@@ -130,12 +136,26 @@
     </div>
 </div>
 
+<div id="adminModal" class="modal hidden">
+    <div class="modal-box" style="border-color:var(--gold);">
+        <h2 style="color:var(--gold);">⚙️ لوحة المطور السرية</h2>
+        <p style="color:#fff; font-size:11px; margin-bottom:15px;">بصفتك مالك اللعبة، يمكنك ضخ مكافآت فورية للخزينة.</p>
+        <input type="number" id="adminMoneyInput" class="modal-input" placeholder="المبلغ المطلوب ضخه 💰">
+        <button class="btn" style="background:var(--gold); margin-bottom:10px;" onclick="executeAdminReward()">توزيع الكاش الإمبراطوري ⚡</button>
+        <button class="btn" style="background:#3f3f46; color:#fff;" onclick="document.getElementById('adminModal').classList.add('hidden')">إغلاق</button>
+    </div>
+</div>
+
 <div class="toast" id="toastMsg">تم!</div>
 
 <div class="header">
-    <div class="company-name" id="uiCompanyName">الشركة</div>
+    <div class="company-name" id="uiCompanyName" onclick="triggerAdminCheck()">الشركة</div>
     <div class="net-worth"><span id="moneyDisplay">0</span> 💰</div>
     <div class="income-rate">المتوسط: +<span id="incomeDisplay">0</span> / ثانية</div>
+    
+    <div class="news-ticker">
+        <span class="news-text" id="liveNewsBar">جاري مزامنة خطوط الإنتاج مع البورصة العالمية لـ أثر... 📈</span>
+    </div>
     
     <div class="boosts-container">
         <div class="boost-badge badge-x2" id="badgeX2">🔥 ربح x2 (<span id="timerX2">0:00</span>)</div>
@@ -145,7 +165,7 @@
 
 <div class="clicker-section" id="clickArea">
     <div id="droneEvent" class="drone hidden" onpointerdown="claimDrone()">🚁</div>
-    <div class="main-btn" onpointerdown="manualClick(event)">
+    <div class="main-btn" id="mainBtn" onpointerdown="manualClick(event)">
         <h2>أثــر</h2>
         <p>إنتاج</p>
     </div>
@@ -169,7 +189,7 @@
         <button class="btn btn-prestige" onclick="openPrestigeModal()">إدراج الشركة في البورصة</button>
         <div style="color:#71717a; font-size:11px; margin-top:10px;">* يتطلب 1 مليار 💰 كحد أدنى للطرح.</div>
     </div>
-    <div class="item-card noclick" style="display:block; text-align:center;">
+    <div class="item-card" style="display:block; text-align:center; pointer-events:none;">
         <div style="color:#a1a1aa; font-size:13px; margin-bottom:5px;">إجمالي الأرباح التاريخية</div>
         <div style="color:var(--primary); font-size:22px; font-weight:900;" id="totalEarnedStats">0 💰</div>
     </div>
@@ -177,19 +197,19 @@
 
 <div id="store" class="tab-content">
     <h3 style="color:var(--text); margin-bottom:15px; text-align:center; font-size:15px;">الدعم اللوجستي</h3>
-    <div class="item-card premium-card noclick">
+    <div class="item-card premium-card" style="pointer-events:all;">
         <div style="font-size:35px; margin-bottom:5px;">⏳</div>
         <h3 style="color:var(--text); margin-bottom:5px;">آلة الزمن المحدودة</h3>
         <p style="color:#a1a1aa; font-size:11px; margin-bottom:10px;">احصل على إنتاج <strong style="color:var(--gold);">15 دقيقة</strong> فوراً.</p>
         <button class="btn btn-ad" onclick="startAd('warp')">مشاهدة إعلان 📺</button>
     </div>
-    <div class="item-card premium-card noclick">
+    <div class="item-card premium-card" style="pointer-events:all;">
         <div style="font-size:35px; margin-bottom:5px;">🔥</div>
         <h3 style="color:var(--text); margin-bottom:5px;">مضاعف الأرباح x2</h3>
         <p style="color:#a1a1aa; font-size:11px; margin-bottom:10px;">أرباح مضاعفة لمدة <strong style="color:var(--ad-color);">3 دقائق</strong>.</p>
         <button class="btn btn-ad" onclick="startAd('x2')">مشاهدة إعلان 📺</button>
     </div>
-    <div class="item-card premium-card noclick">
+    <div class="item-card premium-card" style="pointer-events:all;">
         <div style="font-size:35px; margin-bottom:5px;">🤖</div>
         <h3 style="color:var(--text); margin-bottom:5px;">روبوت النقر</h3>
         <p style="color:#a1a1aa; font-size:11px; margin-bottom:10px;">نقر تلقائي سريع لـ <strong style="color:var(--accent);">20 ثانية</strong>.</p>
@@ -206,32 +226,65 @@ function formatNum(num) {
     return (num / Math.pow(10, tier * 3)).toFixed(2) + SUFFIXES[tier];
 }
 
+const NewsDB = [
+    "عاجل: منشآت أثر تُسجل طفرة تاريخية في معدلات إنتاج المشروبات والمكابس! ⚡",
+    "شائعات: بورصة أثر تترقب خطة الطرح الكبرى لإدراج الأسهم الذهبية في السوق المشفر 📈",
+    "الاتحادات اللوجستية: شبكة السكوترات المبرمجة تكتسح مسارات التوصيل السريع محلياً 🛵"
+];
+
+function updateNewsTicker() {
+    document.getElementById('liveNewsBar').innerText = NewsDB[Math.floor(Math.random() * NewsDB.length)];
+}
+setInterval(updateNewsTicker, 12000);
+
+let audioCtx = null;
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
+
+function playTone(freq, type, duration) {
+    initAudio();
+    if (!audioCtx) return;
+    try {
+        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+    } catch(e) {}
+}
+function soundClick() { playTone(520 + Math.random()*120, 'sine', 0.05); }
+function soundCash() { playTone(980, 'triangle', 0.07); setTimeout(() => playTone(1450, 'sine', 0.1), 45); }
+
 const BuildingsDB = [
-    { id: 'b0', name: "جهد هندسي شخصي", desc: "قوة الإنتاج اليدوي الفوري", icon: "🛠️", baseCost: 15, costMult: 1.15, baseYield: 1, cycleTime: 0, type: 'click' },
-    { id: 'b1', name: "مكبس حراري", desc: "طباعة الملابس السريعة", icon: "👕", baseCost: 100, costMult: 1.15, baseYield: 8, cycleTime: 2, type: 'auto' },
-    { id: 'b2', name: "خط مشروبات", desc: "تصنيع مشروب أثر", icon: "⚡", baseCost: 1200, costMult: 1.15, baseYield: 150, cycleTime: 5, type: 'auto' },
-    { id: 'b3', name: "سكوتر توصيل", desc: "توصيل للجامعة", icon: "🛵", baseCost: 15000, costMult: 1.18, baseYield: 4500, cycleTime: 15, type: 'auto' },
-    { id: 'b4', name: "معرض محلي", desc: "مبيعات للجمهور", icon: "🏪", baseCost: 25000, costMult: 1.18, baseYield: 75000, cycleTime: 30, type: 'auto' },
-    { id: 'b5', name: "أبحاث PTUK", desc: "تطوير تقنيات", icon: "🎓", baseCost: 4000000, costMult: 1.20, baseYield: 1000000, cycleTime: 60, type: 'auto' },
-    { id: 'b6', name: "مصنع أتمتة", desc: "إنتاج بالروبوتات", icon: "🤖", baseCost: 85000000, costMult: 1.20, baseYield: 15000000, cycleTime: 120, type: 'auto' },
-    { id: 'b7', name: "شحن من الصين", desc: "مواد خام رخيصة", icon: "🚢", baseCost: 2500000000, costMult: 1.22, baseYield: 300000000, cycleTime: 300, type: 'auto' }, 
-    { id: 'b8', name: "احتكار محلي", desc: "العلامة الأولى", icon: "🌍", baseCost: 75000000000, costMult: 1.22, baseYield: 8000000000, cycleTime: 900, type: 'auto' }, 
-    { id: 'b9', name: "تكتل عملاق", desc: "شراء المنافسين", icon: "🏢", baseCost: 3000000000000, costMult: 1.25, baseYield: 250000000000, cycleTime: 3600, type: 'auto' }, 
-    { id: 'b10',name: "مدينة أثر", desc: "دولة داخل دولة", icon: "🏙️", baseCost: 150000000000000, costMult: 1.25, baseYield: 15000000000000, cycleTime: 14400, type: 'auto' }, 
-    { id: 'b11',name: "غزو الفضاء", desc: "مبيعات خارج الكوكب", icon: "🚀", baseCost: 9000000000000000, costMult: 1.30, baseYield: 2000000000000000, cycleTime: 86400, type: 'auto' } 
+    { id: 'b0', name: "جهد هندسي شخصي", desc: "قوة الإنتاج اليدوي الفوري", icon: "🛠️", baseCost: 15, costMult: 1.18, baseYield: 1, cycleTime: 0, type: 'click' },
+    { id: 'b1', name: "مكبس حراري", desc: "طباعة الملابس السريعة", icon: "👕", baseCost: 120, costMult: 1.18, baseYield: 8, cycleTime: 2, type: 'auto' },
+    { id: 'b2', name: "خط مشروبات", desc: "تصنيع مشروب أثر", icon: "⚡", baseCost: 1500, costMult: 1.18, baseYield: 140, cycleTime: 5, type: 'auto' },
+    { id: 'b3', name: "سكوتر توصيل", desc: "توصيل للجامعة", icon: "🛵", baseCost: 18000, costMult: 1.21, baseYield: 4200, cycleTime: 15, type: 'auto' },
+    { id: 'b4', name: "معرض محلي", desc: "مبيعات للجمهور", icon: "🏪", baseCost: 320000, costMult: 1.21, baseYield: 70000, cycleTime: 30, type: 'auto' },
+    { id: 'b5', name: "أبحاث PTUK", desc: "تطوير تقنيات", icon: "🎓", baseCost: 5500000, costMult: 1.23, baseYield: 950000, cycleTime: 60, type: 'auto' },
+    { id: 'b6', name: "مصنع أتمتة", desc: "إنتاج بالروبوتات", icon: "🤖", baseCost: 98000000, costMult: 1.23, baseYield: 14000000, cycleTime: 120, type: 'auto' },
+    { id: 'b7', name: "شحن من الصين", desc: "مواد خام رخيصة", icon: "🚢", baseCost: 2800000000, costMult: 1.25, baseYield: 280000000, cycleTime: 300, type: 'auto' }, 
+    { id: 'b8', name: "احتكار محلي", desc: "العلامة الأولى", icon: "🌍", baseCost: 85000000000, costMult: 1.25, baseYield: 7500000000, cycleTime: 900, type: 'auto' }, 
+    { id: 'b9', name: "تكتل عملاق", desc: "شراء المنافسين", icon: "🏢", baseCost: 3500000000000, costMult: 1.28, baseYield: 220000000000, cycleTime: 3600, type: 'auto' }, 
+    { id: 'b10',name: "مدينة أثر", desc: "دولة داخل دولة", icon: "🏙️", baseCost: 180000000000000, costMult: 1.28, baseYield: 13000000000000, cycleTime: 14400, type: 'auto' }, 
+    { id: 'b11',name: "غزو الفضاء", desc: "مبيعات خارج الكوكب", icon: "🚀", baseCost: 9900000000000000, costMult: 1.35, baseYield: 1800000000000000, cycleTime: 86400, type: 'auto' } 
 ];
 
 const UpgradesDB = [
-    { id: 'u0', name: "طاقة مضاعفة", desc: "قوة النقرة اليدوية x2", icon: "💪", cost: 1500, targetId: 'b0', mult: 2 },
-    { id: 'u1', name: "حبر احترافي", desc: "إنتاج المكبس الحراري x2", icon: "🎨", cost: 10000, targetId: 'b1', mult: 2 },
-    { id: 'u2', name: "خلطة سرية", desc: "إنتاج المشروبات x2", icon: "🧪", cost: 150000, targetId: 'b2', mult: 2 },
-    { id: 'u3', name: "محرك معدل", desc: "إنتاج السكوتر x3", icon: "🔧", cost: 2000000, targetId: 'b3', mult: 3 },
-    { id: 'u4', name: "إعلانات ممولة", desc: "مبيعات المعرض x3", icon: "📱", cost: 35000000, targetId: 'b4', mult: 3 },
-    { id: 'u5', name: "منحة عليا", desc: "أبحاث الجامعة x3", icon: "🔬", cost: 800000000, targetId: 'b5', mult: 3 },
-    { id: 'u6', name: "ذكاء اصطناعي", desc: "إنتاج الروبوتات x4", icon: "🧠", cost: 15000000000, targetId: 'b6', mult: 4 },
-    { id: 'u7', name: "جمارك مخفضة", desc: "أرباح الشحن x4", icon: "📉", cost: 400000000000, targetId: 'b7', mult: 4 },
-    { id: 'u8', name: "تسويق عالمي", desc: "الاحتكار الإقليمي x5", icon: "🌐", cost: 15000000000000, targetId: 'b8', mult: 5 },
-    { id: 'u9', name: "وقود بلازما", desc: "غزو الفضاء x5", icon: "🌠", cost: 50000000000000000, targetId: 'b11', mult: 5 }
+    { id: 'u0', name: "طاقة مضاعفة", desc: "قوة النقرة اليدوية x2", icon: "💪", cost: 2500, targetId: 'b0', mult: 2 },
+    { id: 'u1', name: "حبر احترافي", desc: "إنتاج المكبس الحراري x2", icon: "🎨", cost: 15000, targetId: 'b1', mult: 2 },
+    { id: 'u2', name: "خلطة سرية", desc: "إنتاج المشروبات x2", icon: "🧪", cost: 220000, targetId: 'b2', mult: 2 },
+    { id: 'u3', name: "محرك معدل", desc: "إنتاج السكوتر x3", icon: "🔧", cost: 2800000, targetId: 'b3', mult: 3 },
+    { id: 'u4', name: "إعلانات ممولة", desc: "مبيعات المعرض x3", icon: "📱", cost: 45000000, targetId: 'b4', mult: 3 },
+    { id: 'u5', name: "منحة عليا", desc: "أبحاث الجامعة x3", icon: "🔬", cost: 950000000, targetId: 'b5', mult: 3 },
+    { id: 'u6', name: "ذكاء اصطناعي", desc: "إنتاج الروبوتات x4", icon: "🧠", cost: 18000000000, targetId: 'b6', mult: 4 },
+    { id: 'u7', name: "جمارك مخفضة", desc: "أرباح الشحن x4", icon: "📉", cost: 520000000000, targetId: 'b7', mult: 4 },
+    { id: 'u8', name: "تسويق عالمي", desc: "الاحتكار الإقليمي x5", icon: "🌐", cost: 18000000000000, targetId: 'b8', mult: 5 },
+    { id: 'u9', name: "وقود بلازما", desc: "غزو الفضاء x5", icon: "🌠", cost: 65000000000000000, targetId: 'b11', mult: 5 }
 ];
 
 let GameData = {
@@ -241,24 +294,20 @@ let GameData = {
 };
 
 let cache = { clickPower: 1, passiveIncome: 0 };
-let droneActive = false;
-let needsUIUpdate = false;
+let droneActive = false; let needsUIUpdate = false;
+let adminClickCount = 0; let lastAdminClickTime = 0;
 
 function initGame() {
-    let saved = localStorage.getItem('AtharTimerV1');
+    let saved = localStorage.getItem('AtharTimerSecureV2');
     if (saved) {
         GameData = JSON.parse(saved);
         if(!GameData.boosts) GameData.boosts = { x2End: 0, autoEnd: 0 };
         if(!GameData.timers) GameData.timers = {};
-        if(GameData.prestigeShares === undefined) GameData.prestigeShares = 0;
-        if(GameData.totalEarned === undefined) GameData.totalEarned = GameData.money;
-        
         BuildingsDB.forEach(b => { 
             if(GameData.buildings[b.id] === undefined) GameData.buildings[b.id] = 0; 
             if(GameData.timers[b.id] === undefined) GameData.timers[b.id] = 0;
         });
         UpgradesDB.forEach(u => { if(GameData.upgrades[u.id] === undefined) GameData.upgrades[u.id] = false; });
-        
         document.getElementById('startupModal').classList.add('hidden');
         document.getElementById('uiCompanyName').innerText = GameData.companyName;
         checkOfflineProgress();
@@ -267,37 +316,37 @@ function initGame() {
         UpgradesDB.forEach(u => GameData.upgrades[u.id] = false);
         document.getElementById('startupModal').classList.remove('hidden');
     }
-    
-    calculateStats();
-    updateHqTab();
-    renderLists();
-    updateUI();
+    calculateStats(); renderLists(); updateUI(); updateNewsTicker();
     requestAnimationFrame(gameLoop);
     setInterval(saveGame, 1000);
     setInterval(trySpawnDrone, 90000); 
 }
 
 function startGame() {
+    initAudio();
     let name = document.getElementById('companyNameInput').value.trim();
     GameData.companyName = name === "" ? "إمبراطورية أثر" : name;
     document.getElementById('uiCompanyName').innerText = GameData.companyName;
     document.getElementById('startupModal').classList.add('hidden');
+    soundCash();
+    showToast("💵 أهلاً بك في عالم أثر الاستراتيجي!");
     saveGame();
 }
 
 function saveGame() {
     GameData.lastSaved = Date.now();
-    localStorage.setItem('AtharTimerV1', JSON.stringify(GameData));
+    localStorage.setItem('AtharTimerSecureV2', JSON.stringify(GameData));
 }
 
 function checkOfflineProgress() {
     let now = Date.now();
     let diff = (now - GameData.lastSaved) / 1000;
+    if (diff > 28800) diff = 28800; 
     if (diff > 60) {
         let earned = 0;
         BuildingsDB.forEach(b => {
             if(b.type === 'auto' && GameData.buildings[b.id] > 0) {
-                let totalTime = GameData.timers[b.id] + (diff * 0.4); 
+                let totalTime = GameData.timers[b.id] + (diff * 0.45); 
                 let cycles = Math.floor(totalTime / b.cycleTime);
                 GameData.timers[b.id] = totalTime % b.cycleTime;
                 earned += cycles * getBuildingYield(b);
@@ -312,9 +361,36 @@ function checkOfflineProgress() {
     GameData.lastSaved = now;
 }
 
-function closeOfflineModal() { document.getElementById('offlineModal').classList.add('hidden'); }
-function showToast(msg) { const t = document.getElementById('toastMsg'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
-function addMoney(amt) { GameData.money += amt; GameData.totalEarned += amt; needsUIUpdate = true; }
+function closeOfflineModal() { document.getElementById('offlineModal').classList.add('hidden'); soundCash(); }
+
+function showToast(msg) { 
+    const t = document.getElementById('toastMsg'); 
+    t.innerText = msg; 
+    t.classList.add('show'); 
+    setTimeout(() => t.classList.remove('show'), 2000); 
+}
+
+function addMoney(amt) { if(amt > 0) { GameData.money += amt; GameData.totalEarned += amt; needsUIUpdate = true; } }
+
+function triggerAdminCheck() {
+    let now = Date.now();
+    if (now - lastAdminClickTime > 2000) adminClickCount = 0;
+    lastAdminClickTime = now; adminClickCount++;
+    if (adminClickCount >= 5) {
+        adminClickCount = 0;
+        let pwd = prompt("أدخل رمز المطور السري:");
+        if (pwd === "2025") document.getElementById('adminModal').classList.remove('hidden');
+    }
+}
+
+function executeAdminReward() {
+    let m = parseFloat(document.getElementById('adminMoneyInput').value) || 0;
+    if (m > 0) { GameData.money += m; GameData.totalEarned += m; }
+    document.getElementById('adminMoneyInput').value = '';
+    document.getElementById('adminModal').classList.add('hidden');
+    soundCash(); calculateStats(); updateUI();
+    showToast("💎 تم ضخ الأرباح الإدارية بنجاح!");
+}
 
 function updateHqTab() {
     document.getElementById('currentShares').innerText = formatNum(GameData.prestigeShares);
@@ -329,7 +405,7 @@ function calcPendingShares() {
 
 function openPrestigeModal() {
     let pending = calcPendingShares();
-    if (pending < 1) return alert("تحتاج لـ 1 مليار أرباح تاريخية كحد أدنى لطرح شركتك في البورصة!");
+    if (pending < 1) return alert("تحتاج لـ 1 مليار كحد أدنى للطرح!");
     document.getElementById('pendingShares').innerText = formatNum(pending);
     document.getElementById('prestigeModal').classList.remove('hidden');
 }
@@ -343,12 +419,13 @@ function executePrestige() {
         BuildingsDB.forEach(b => { GameData.buildings[b.id] = 0; GameData.timers[b.id] = 0; });
         UpgradesDB.forEach(u => GameData.upgrades[u.id] = false);
         closePrestigeModal(); calculateStats(); renderLists(); updateUI(); saveGame();
-        document.body.style.animation = 'flash 1s';
-        setTimeout(() => document.body.style.animation = '', 1000);
+        soundCash();
+        showToast("🚀 تم الإدراج بالبورصة وتحديث الأسهم الذهبية!");
     }
 }
 
 function startAd(type) {
+    initAudio();
     activeAdReward = type;
     document.getElementById('adSimulator').classList.remove('hidden');
     let timeLeft = 5; document.getElementById('adTimer').innerText = timeLeft;
@@ -366,17 +443,15 @@ function grantReward(type) {
     if (type === 'warp') {
         let earned = 0;
         BuildingsDB.forEach(b => {
-            if(b.type === 'auto' && GameData.buildings[b.id] > 0) {
-                let cycles = Math.floor(900 / b.cycleTime);
-                if(cycles < 1 && Math.random() < (900/b.cycleTime)) cycles = 1; 
-                earned += cycles * getBuildingYield(b);
-            }
+            if(b.type === 'auto' && GameData.buildings[b.id] > 0) earned += Math.floor(900 / b.cycleTime) * getBuildingYield(b);
         });
         if(earned === 0) earned = 500;
-        addMoney(earned); showToast(`تسريع الزمن! ربحت ${formatNum(earned)}💰`);
+        addMoney(earned);
+        soundCash();
+        showToast(`⏳ تمت قفزة الزمن! ربحت ${formatNum(earned)}💰`);
     } 
-    else if (type === 'x2') { GameData.boosts.x2End = now + 180000; showToast("مضاعف x2 مفعل لـ 3 دقائق! 🔥"); calculateStats(); } 
-    else if (type === 'auto') { GameData.boosts.autoEnd = now + 20000; showToast("روبوت النقر يعمل لـ 20 ثانية! 🤖"); }
+    else if (type === 'x2') { GameData.boosts.x2End = now + 180000; calculateStats(); showToast("🔥 تم مضاعفة أرباح المنشآت!"); } 
+    else if (type === 'auto') { GameData.boosts.autoEnd = now + 20000; showToast("🤖 روبوت النقر السريع يعمل الآن!"); }
     updateUI();
 }
 
@@ -384,20 +459,14 @@ function updateBoostsUI() {
     let now = Date.now();
     let bX2 = document.getElementById('badgeX2'), tX2 = document.getElementById('timerX2');
     if (GameData.boosts.x2End > now) { bX2.classList.add('active'); let s = Math.floor((GameData.boosts.x2End - now)/1000); tX2.innerText = `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`; } else { bX2.classList.remove('active'); }
-    
     let bAu = document.getElementById('badgeAuto'), tAu = document.getElementById('timerAuto');
     if (GameData.boosts.autoEnd > now) { bAu.classList.add('active'); tAu.innerText = Math.floor((GameData.boosts.autoEnd - now)/1000) + 's'; } else { bAu.classList.remove('active'); }
 }
 
-// ================= الحسابات =================
 function getBuildingCost(b) { return b.baseCost * Math.pow(b.costMult, GameData.buildings[b.id]); }
-
 function getBuildingYield(b) {
-    let lvl = GameData.buildings[b.id];
-    if (lvl === 0) return 0;
-    
-    let out = b.baseYield * lvl;
-    out *= Math.pow(2, Math.floor(lvl / 50)); 
+    let lvl = GameData.buildings[b.id]; if (lvl === 0) return 0;
+    let out = b.baseYield * lvl * Math.pow(2, Math.floor(lvl / 50)); 
     UpgradesDB.forEach(u => { if(u.targetId === b.id && GameData.upgrades[u.id]) out *= u.mult; });
     out *= (1 + (GameData.prestigeShares * 0.10)); 
     return out;
@@ -405,90 +474,76 @@ function getBuildingYield(b) {
 
 function calculateStats() {
     cache.clickPower = getBuildingYield(BuildingsDB[0]) || (1 * (1 + (GameData.prestigeShares * 0.10)));
-    
     cache.passiveIncome = 0;
-    BuildingsDB.forEach(b => { 
-        if(b.type === 'auto' && GameData.buildings[b.id] > 0) {
-            cache.passiveIncome += getBuildingYield(b) / b.cycleTime;
-        }
-    });
-    
-    if (GameData.boosts.x2End > Date.now()) {
-        cache.passiveIncome *= 2;
-    }
+    BuildingsDB.forEach(b => { if(b.type === 'auto' && GameData.buildings[b.id] > 0) cache.passiveIncome += getBuildingYield(b) / b.cycleTime; });
+    if (GameData.boosts.x2End > Date.now()) cache.passiveIncome *= 2;
     updateHqTab();
 }
 
 function manualClick(e) {
-    addMoney(cache.clickPower);
-    const clickArea = document.getElementById('clickArea');
-    const fTxt = document.createElement('div');
-    fTxt.className = 'floating-text'; fTxt.innerText = `+${formatNum(cache.clickPower)}`;
+    initAudio();
+    addMoney(cache.clickPower); soundClick();
+    const btn = document.getElementById('mainBtn'); btn.style.transform = "scale(0.92)"; setTimeout(() => btn.style.transform = "none", 60);
     let x = (e && e.touches) ? e.touches[0].clientX : (e ? e.clientX : window.innerWidth/2);
     let y = (e && e.touches) ? e.touches[0].clientY : (e ? e.clientY : window.innerHeight/4);
-    fTxt.style.left = `${x - 20}px`; fTxt.style.top = `${y - 40}px`;
-    clickArea.appendChild(fTxt); setTimeout(() => fTxt.remove(), 1000);
+    const clickArea = document.getElementById('clickArea');
+    const fTxt = document.createElement('div'); fTxt.className = 'floating-text'; fTxt.innerText = `+${formatNum(cache.clickPower)}`;
+    fTxt.style.left = `${x - 20}px`; fTxt.style.top = `${y - 40}px`; clickArea.appendChild(fTxt); setTimeout(() => fTxt.remove(), 650);
+
+    for (let i = 0; i < 4; i++) {
+        const p = document.createElement('div'); p.className = 'particle'; p.innerText = '🪙';
+        p.style.left = `${x}px`; p.style.top = `${y}px`;
+        let angle = Math.random() * Math.PI * 2, velocity = 35 + Math.random() * 55;
+        p.style.setProperty('--x', `${Math.cos(angle) * velocity}px`); p.style.setProperty('--y', `${Math.sin(angle) * velocity}px`);
+        clickArea.appendChild(p); setTimeout(() => p.remove(), 580);
+    }
     updateUI();
 }
 
 function buyBuilding(id) {
-    let b = BuildingsDB.find(x => x.id === id); if(!b) return;
-    let c = getBuildingCost(b);
-    if (GameData.money >= c) { GameData.money -= c; GameData.buildings[id]++; calculateStats(); renderLists(); updateUI(); }
+    let b = BuildingsDB.find(x => x.id === id); if(!b) return; let c = getBuildingCost(b);
+    if (GameData.money >= c && c >= 0) { 
+        GameData.money -= c; GameData.buildings[id]++; soundCash(); calculateStats(); renderLists(); updateUI(); 
+        showToast(`🏭 تمت ترقية منشأة: ${b.name}`);
+    }
 }
-
 function buyUpgrade(id) {
     let u = UpgradesDB.find(x => x.id === id); if(!u) return;
-    if (!GameData.upgrades[id] && GameData.money >= u.cost) { GameData.money -= u.cost; GameData.upgrades[id] = true; calculateStats(); renderLists(); updateUI(); }
+    if (!GameData.upgrades[id] && GameData.money >= u.cost) { 
+        GameData.money -= u.cost; GameData.upgrades[id] = true; soundCash(); calculateStats(); renderLists(); updateUI(); 
+        showToast(`🔬 تفعيل البحث: ${u.name}`);
+    }
 }
 
 function trySpawnDrone() {
-    if (droneActive || Math.random() > 0.3) return; 
-    const drone = document.getElementById('droneEvent');
-    drone.style.top = (10 + Math.random() * 60) + '%';
-    drone.style.transform = 'translateX(-100px)';
-    drone.classList.remove('hidden'); droneActive = true;
+    if (droneActive || Math.random() > 0.3) return; const drone = document.getElementById('droneEvent');
+    drone.style.top = (10 + Math.random() * 60) + '%'; drone.style.transform = 'translateX(-100px)'; drone.classList.remove('hidden'); droneActive = true;
     setTimeout(() => { drone.style.transform = `translateX(${window.innerWidth + 100}px)`; }, 50);
     setTimeout(() => { drone.classList.add('hidden'); droneActive = false; }, 8000);
 }
-
 function claimDrone() {
-    if (!droneActive) return;
-    const d = document.getElementById('droneEvent'); d.classList.add('hidden'); droneActive = false;
-    let r = Math.max(100, cache.passiveIncome * 20); 
-    addMoney(r);
-    showToast(`صندوق دعم! +${formatNum(r)}💰`); updateUI();
+    if (!droneActive) return; const d = document.getElementById('droneEvent'); d.classList.add('hidden'); droneActive = false;
+    let r = Math.max(100, cache.passiveIncome * 20); addMoney(r); soundCash(); showToast(`🚁 صندوق دعم جوي! +${formatNum(r)}💰`); updateUI();
 }
 
-// ================= الريندر =================
 function renderLists() {
-    const bList = document.getElementById('buildingsList'); if(!bList) return;
-    bList.innerHTML = '';
+    const bList = document.getElementById('buildingsList'); if(!bList) return; bList.innerHTML = '';
     BuildingsDB.forEach(b => {
-        let c = getBuildingCost(b); let lvl = GameData.buildings[b.id];
+        let c = getBuildingCost(b), lvl = GameData.buildings[b.id];
         let statTxt = b.type === 'click' ? `+${formatNum(getBuildingYield(b))}/نقرة` : `+${formatNum(getBuildingYield(b))} كل ${b.cycleTime}s`;
-        
-        let nextMilestone = (Math.floor(lvl / 50) + 1) * 50;
-        let pct = (lvl === 0) ? 0 : (lvl % 50) / 50 * 100;
-        
+        let nextMilestone = (Math.floor(lvl / 50) + 1) * 50, pct = (lvl === 0) ? 0 : (lvl % 50) / 50 * 100;
         bList.innerHTML += `
         <div class="item-card ${GameData.money >= c ? '' : 'disabled'}" onclick="buyBuilding('${b.id}')" id="card-${b.id}">
-            <div class="working-bg" id="bg-${b.id}"></div>
-            <div class="item-icon">${b.icon}</div>
-            <div class="item-info">
-                <div class="item-name">${b.name}</div>
-                <div class="item-stats">⚡ ${statTxt}</div>
-                <div class="milestone-bar" style="height:8px;">
-                    <div class="milestone-fill" style="width:${pct}%"></div>
+            <div class="working-bg" id="bg-${b.id}"></div><div class="item-icon">${b.icon}</div>
+            <div class="item-info"><div class="item-name">${b.name}</div><div class="item-stats">⚡ ${statTxt}</div>
+                <div class="milestone-bar" style="height:8px;"><div class="milestone-fill" style="width:${pct}%"></div>
                     <div style="position:absolute; right:2px; top:-1px; font-size:8px; color:#000; font-weight:bold;">${lvl}/${nextMilestone}</div>
                 </div>
-            </div>
-            <div class="item-action"><span class="item-cost">${formatNum(c)} 💰</span><span class="item-lvl">Lvl ${lvl}</span></div>
+            </div><div class="item-action"><span class="item-cost">${formatNum(c)} 💰</span><span class="item-lvl">Lvl ${lvl}</span></div>
         </div>`;
     });
 
-    const uList = document.getElementById('upgradesList'); if(!uList) return;
-    uList.innerHTML = '';
+    const uList = document.getElementById('upgradesList'); if(!uList) return; uList.innerHTML = '';
     UpgradesDB.forEach(u => {
         if (GameData.upgrades[u.id]) return; 
         uList.innerHTML += `
@@ -501,21 +556,15 @@ function renderLists() {
 }
 
 function updateUI() {
-    let moneyDisp = document.getElementById('moneyDisplay'); if(!moneyDisp) return;
-    moneyDisp.innerText = formatNum(GameData.money);
+    let moneyDisp = document.getElementById('moneyDisplay'); if(!moneyDisp) return; moneyDisp.innerText = formatNum(GameData.money);
     document.getElementById('incomeDisplay').innerText = formatNum(cache.passiveIncome);
-    BuildingsDB.forEach(b => {
-        let card = document.getElementById(`card-${b.id}`);
-        if(card) { if(GameData.money >= getBuildingCost(b)) card.classList.remove('disabled'); else card.classList.add('disabled'); }
-    });
-    UpgradesDB.forEach(u => {
-        let card = document.getElementById(`card-${u.id}`);
-        if(card) { if(GameData.money >= u.cost) card.classList.remove('disabled'); else card.classList.add('disabled'); }
-    });
+    BuildingsDB.forEach(b => { let card = document.getElementById(`card-${b.id}`); if(card) card.classList.toggle('disabled', GameData.money < getBuildingCost(b)); });
+    UpgradesDB.forEach(u => { let card = document.getElementById(`card-${u.id}`); if(card) card.classList.toggle('disabled', GameData.money < u.cost); });
     needsUIUpdate = false;
 }
 
 function switchTab(tabId) {
+    initAudio(); soundClick();
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     let targetTab = document.getElementById(tabId); if(targetTab) targetTab.classList.add('active');
@@ -525,39 +574,23 @@ function switchTab(tabId) {
 let lastTime = performance.now(); let autoClickTimer = 0; let recalcTimer = 0;
 function gameLoop(currentTime) {
     let dt = (currentTime - lastTime) / 1000; lastTime = currentTime; let now = Date.now();
-
+    if(dt > 2) dt = 2;
     if (GameData.boosts.autoEnd > now) { autoClickTimer += dt; if(autoClickTimer > 0.1) { manualClick(null); autoClickTimer = 0; } }
 
     BuildingsDB.forEach(b => {
         if(b.type === 'auto' && GameData.buildings[b.id] > 0) {
-            GameData.timers[b.id] += dt;
-            let cTime = b.cycleTime;
-            
+            GameData.timers[b.id] += dt; let cTime = b.cycleTime;
             if (GameData.timers[b.id] >= cTime) {
-                let cycles = Math.floor(GameData.timers[b.id] / cTime);
-                GameData.timers[b.id] -= cycles * cTime;
-                
-                let yieldAmt = getBuildingYield(b) * cycles;
-                if (GameData.boosts.x2End > now) yieldAmt *= 2;
-                addMoney(yieldAmt);
+                let cycles = Math.floor(GameData.timers[b.id] / cTime); GameData.timers[b.id] -= cycles * cTime;
+                let yieldAmt = getBuildingYield(b) * cycles; if (GameData.boosts.x2End > now) yieldAmt *= 2; addMoney(yieldAmt);
             }
-
-            let bg = document.getElementById(`bg-${b.id}`);
-            if(bg) {
-                let pct = (GameData.timers[b.id] / cTime) * 100;
-                bg.style.width = pct + '%';
-            }
+            let bg = document.getElementById(`bg-${b.id}`); if(bg) bg.style.width = ((GameData.timers[b.id] / cTime) * 100) + '%';
         }
     });
 
     recalcTimer += dt;
     if (recalcTimer > 1) { updateBoostsUI(); calculateStats(); updateUI(); recalcTimer = 0; } 
-    else if(needsUIUpdate) { 
-        let moneyDisp = document.getElementById('moneyDisplay');
-        if(moneyDisp) moneyDisp.innerText = formatNum(GameData.money); 
-        needsUIUpdate = false; 
-    }
-
+    else if(needsUIUpdate) { let moneyDisp = document.getElementById('moneyDisplay'); if(moneyDisp) moneyDisp.innerText = formatNum(GameData.money); needsUIUpdate = false; }
     requestAnimationFrame(gameLoop);
 }
 
@@ -566,16 +599,9 @@ window.onload = initGame;
 </script>
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-3574836580564688" crossorigin="anonymous"></script>
-
 <div style="position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; z-index: 9999;">
-    <ins class="adsbygoogle"
-         style="display:inline-block;width:320px;height:50px"
-         data-ad-client="ca-app-pub-3574836580564688"
-         data-ad-slot="6203058254"></ins>
-    <script>
-         (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
+    <ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px" data-ad-client="ca-app-pub-3574836580564688" data-ad-slot="6203058254"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 </div>
-
 </body>
 </html>
