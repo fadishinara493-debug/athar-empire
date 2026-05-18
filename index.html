@@ -1,605 +1,713 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" id="htmlTag">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Athar Tycoon: Secure Engine</title>
+<title>Athar Tycoon: V7.5 Complete Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="manifest" href="manifest.json">
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(e => {});
-    });
-  }
-</script>
 <style>
-    :root {
-        --bg: #09090b; --panel: #18181b; --card: #27272a; --text: #f8fafc;
-        --primary: #10b981; --primary-glow: rgba(16, 185, 129, 0.4);
-        --accent: #3b82f6; --gold: #fbbf24; --danger: #ef4444; 
-        --prestige: #8b5cf6; --ad-color: #f97316;
+    :root { 
+        --bg: #050508; --panel: #0d0e15; --card: #141622; --text: #f1f5f9; 
+        --primary: #00ffa3; --primary-glow: rgba(0, 255, 163, 0.2); 
+        --accent: #00b2ff; --gold: #ffd700; --danger: #ff3b30; 
+        --prestige: #a347ff; --ad-color: #ff7a00; --gem: #ff2d55; --xp: #00e5ff; 
     }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent;}
-    body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding-bottom: 50px; }
+    body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding-bottom: 75px; transition: box-shadow 0.5s; box-shadow: inset 0 0 60px var(--primary-glow); }
+    
+    .crit-text { color: var(--gem) !important; text-shadow: 0 0 15px var(--gem) !important; font-size: 35px !important; z-index: 200; font-weight: 900;}
+    .floating-text { position: absolute; font-size: 22px; font-weight: 900; color: var(--primary); animation: floatUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards; pointer-events: none; text-shadow: 0 4px 8px rgba(0,0,0,0.9); z-index: 100;}
+    @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-90px) scale(1.4); opacity: 0; } }
+    .particle { position: absolute; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; pointer-events: none; animation: pop 0.4s ease-out forwards; }
+    @keyframes pop { 0% { transform: translate(0,0) scale(1); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; } }
 
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: flex; justify-content: center; align-items: center; padding: 20px; transition: 0.3s; }
-    .hidden { opacity: 0; pointer-events: none; }
-    .modal-box { background: var(--panel); border: 2px solid var(--primary); padding: 30px; border-radius: 25px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 0 50px rgba(16, 185, 129, 0.15); }
-    .modal-box h2 { margin-bottom: 15px; font-size: 28px; }
-    .modal-input { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #3f3f46; background: #000; color: #fff; font-size: 18px; text-align: center; margin-bottom: 25px; outline: none; font-weight: bold; transition: 0.3s; }
-    .modal-input:focus { border-color: var(--primary); }
-    .btn { background: var(--primary); color: #000; border: none; padding: 15px 30px; border-radius: 15px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.2s; width: 100%; }
+    .modal { position: fixed; inset: 0; background: rgba(3, 3, 5, 0.95); z-index: 9000; display: flex; justify-content: center; align-items: center; padding: 20px; transition: 0.3s; backdrop-filter: blur(8px); }
+    .hidden { opacity: 0; pointer-events: none; display: none !important; }
+    .modal-box { background: var(--panel); border: 2px solid var(--primary); padding: 25px; border-radius: 20px; text-align: center; width: 100%; max-width: 380px; box-shadow: 0 0 40px var(--primary-glow); max-height: 85vh; overflow-y: auto;}
+    .modal-input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #222538; background: #000; color: #fff; font-size: 16px; text-align: center; margin-bottom: 20px; outline: none; }
+    
+    .btn { background: var(--primary); color: #000; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.2s; width: 100%; }
     .btn:active { transform: scale(0.95); }
-    .btn-ad { background: var(--ad-color); color: #fff; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 0 15px rgba(249, 115, 22, 0.4); }
-    .btn-prestige { background: linear-gradient(45deg, #8b5cf6, #d946ef); color: white; border: none; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; background: #222538 !important; color: #71717a !important; }
+    .btn-gem { background: var(--gem); color: #fff; } .btn-prestige { background: var(--prestige); color: #fff; } .btn-ad { background: var(--ad-color); color: #fff; }
 
-    .header { background: rgba(24, 24, 27, 0.98); padding: 15px 20px; text-align: center; border-bottom: 2px solid var(--primary); z-index: 10; position: relative;}
-    .company-name { font-size: 15px; color: var(--accent); font-weight: 900; margin-bottom: 5px; text-transform: uppercase; cursor: pointer;}
-    .net-worth { font-size: 38px; font-weight: 900; color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 5px; text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);}
-    .income-rate { font-size: 14px; color: var(--gold); font-weight: 900; background: rgba(251, 191, 36, 0.15); display: inline-block; padding: 5px 20px; border-radius: 20px; margin-top: 5px; border: 1px solid rgba(251, 191, 36, 0.3); }
+    .header { background: linear-gradient(180deg, rgba(13,14,21,0.98) 0%, rgba(5,5,8,0.95) 100%); padding: 12px 15px; text-align: center; border-bottom: 1px solid #1f2235; z-index: 10;}
+    .xp-bar-container { width: 100%; height: 6px; background: #000; border-radius: 10px; overflow: hidden; margin-top: 5px; border: 1px solid #1f2235; }
+    .xp-fill { height: 100%; background: var(--xp); transition: width 0.3s; box-shadow: 0 0 10px var(--xp); }
+    .top-stats { display: flex; justify-content: space-around; font-size: 26px; font-weight: 900; margin-top: 5px; }
+    .stat-money { color: var(--primary); text-shadow: 0 0 15px rgba(0,255,163,0.3); }
+    .stat-gems { color: var(--gem); font-size: 20px; display: flex; align-items: center; gap: 5px; }
     
-    .news-ticker { width: 100%; background: rgba(0, 0, 0, 0.4); padding: 5px 10px; font-size: 11px; color: var(--gold); overflow: hidden; white-space: nowrap; border-radius: 6px; margin-top: 6px; }
-    .news-text { display: inline-block; padding-left: 100%; animation: ticker 28s linear infinite; font-weight: bold;}
-    @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+    .clicker-section { height: 15vh; display: flex; justify-content: center; align-items: center; position: relative; }
+    .main-btn { width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #00ff94 0%, #00663b 100%); border: 4px solid var(--primary); box-shadow: 0 0 35px var(--primary-glow); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 5; transition: transform 0.05s;}
+    
+    .tab-content { flex: 1; overflow-y: auto; padding: 12px; display: none; padding-bottom: 20px;}
+    .tab-content.active { display: block; animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-    .boosts-container { display: flex; justify-content: center; gap: 10px; margin-top: 10px; height: 25px;}
-    .boost-badge { font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 10px; display: none; }
-    .boost-badge.active { display: block; animation: pulse 1.5s infinite; }
-    .badge-x2 { background: rgba(249, 115, 22, 0.2); color: var(--ad-color); border: 1px solid var(--ad-color); }
-    .badge-auto { background: rgba(59, 130, 246, 0.2); color: var(--accent); border: 1px solid var(--accent); }
-    @keyframes pulse { 50% { opacity: 0.6; } }
+    .item-card { background: var(--card); border: 1px solid #1f2235; border-radius: 16px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; position: relative; transition: 0.2s; overflow: hidden;}
+    .item-icon { font-size: 28px; min-width: 55px; height: 55px; background: rgba(0,0,0,0.5); border-radius: 12px; display: flex; justify-content: center; align-items: center; border: 1px solid #2d314d;}
+    .item-info { flex: 1; }
+    .item-name { font-size: 14px; font-weight: 900; margin-bottom: 2px; color: #fff;}
+    .item-stats { font-size: 11px; font-weight: bold; color: var(--accent); }
+    .item-action { text-align: right; min-width: 75px; z-index: 2;}
+    .item-cost { font-size: 13px; font-weight: 900; color: var(--primary); display: block; margin-bottom: 4px; }
+    
+    .ms-container { margin-top: 5px; background: #000; height: 14px; border-radius: 7px; border: 1px solid #1f2235; position: relative; overflow: hidden; }
+    .ms-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #00ffa3); transition: width 0.3s; }
+    .ms-text { position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 9px; font-weight: bold; color: #fff; line-height: 14px; text-shadow: 0 0 2px #000;}
 
-    .clicker-section { height: 25vh; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden;}
-    .main-btn { width: 140px; height: 140px; border-radius: 50%; background: linear-gradient(135deg, #059669, #064e3b); border: 6px solid var(--primary); box-shadow: 0 0 40px rgba(16, 185, 129, 0.4), inset 0 0 20px rgba(255,255,255,0.3); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.05s; z-index: 5; }
-    .main-btn h2 { font-size: 26px; margin-bottom: 5px; text-shadow: 0 3px 5px rgba(0,0,0,0.6); }
+    .stock-card { border-left: 4px solid var(--primary); flex-direction: column; align-items: stretch; gap: 8px;}
+    .stock-down { border-left-color: var(--danger); }
+    .stock-header { display: flex; justify-content: space-between; align-items: center; }
+    .chart-container { display: flex; align-items: flex-end; gap: 4px; height: 40px; padding: 5px; background: rgba(0,0,0,0.3); border-radius: 8px; flex:1;}
+    .chart-bar { flex: 1; background: var(--primary); min-height: 2px; transition: height 0.3s, background 0.3s; border-radius: 2px 2px 0 0; }
+    .news-ticker { background: rgba(255, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); padding: 8px; border-radius: 10px; font-size: 12px; color: var(--gold); font-weight: bold; text-align: center; margin-bottom: 12px; overflow: hidden; white-space: nowrap;}
     
-    .floating-text { position: absolute; font-size: 22px; font-weight: 900; color: var(--primary); pointer-events: none; animation: floatUp 0.65s forwards; z-index: 100; }
-    @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-70px) scale(1.4); opacity: 0; } }
-    .particle { position: absolute; pointer-events: none; width: 14px; height: 14px; background: #fbbf24; border-radius: 50%; box-shadow: 0 0 6px #fbbf24; z-index: 99; animation: particleAnim 0.6s cubic-bezier(0.1, 0.8, 0.25, 1) forwards; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; color: #000;}
-    @keyframes particleAnim { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(0.4); opacity: 0; } }
+    .skill-node { border: 1px solid #2d314d; background: var(--card); border-radius: 14px; padding: 12px; text-align: center; margin-bottom: 10px;}
+    .inbox-msg { background: rgba(0, 178, 255, 0.05); border-left: 3px solid var(--accent); padding: 12px; margin-bottom: 10px; border-radius: 12px; font-size: 12px;}
+    .daily-box { background: rgba(0, 255, 163, 0.03); border: 2px dashed #1f2235; padding: 15px; border-radius: 16px; margin-bottom: 15px;}
+    
+    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 65px; background: rgba(5,5,8,0.98); border-top: 1px solid #1f2235; display: flex; z-index: 50; overflow-x: auto; white-space: nowrap; padding-bottom: env(safe-area-inset-bottom); scrollbar-width: none;}
+    .bottom-nav::-webkit-scrollbar { display: none; }
+    .nav-item { flex: 0 0 22%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #525876; transition: 0.3s; cursor: pointer; padding: 0 5px;}
+    .nav-item.active { color: var(--primary); transform: translateY(-3px); }
+    .nav-icon { font-size: 22px; margin-bottom: 3px; }
+    .nav-text { font-size: 10px; font-weight: 900; }
 
-    .drone { position: absolute; top: 20%; left: -100px; font-size: 45px; cursor: pointer; z-index: 50; transition: transform 0.1s; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5)); }
-
-    .tabs-nav { display: flex; background: var(--panel); border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom: 1px solid #3f3f46; box-shadow: 0 -10px 20px rgba(0,0,0,0.3); z-index: 10;}
-    .tab-btn { flex: 1; padding: 12px 5px; text-align: center; font-weight: 900; color: #71717a; background: transparent; border: none; font-size: 13px; cursor: pointer; border-bottom: 4px solid transparent; transition: 0.3s;}
-    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: rgba(16, 185, 129, 0.08); }
-    .tab-btn.premium { color: var(--ad-color); }
-    .tab-btn.premium.active { border-bottom-color: var(--ad-color); background: rgba(249, 115, 22, 0.08); }
-    .tab-btn.prestige-tab { color: var(--prestige); }
-    .tab-btn.prestige-tab.active { border-bottom-color: var(--prestige); background: rgba(139, 92, 246, 0.08); }
-
-    .tab-content { flex: 1; background: var(--panel); overflow-y: auto; padding: 15px; display: none; padding-bottom: 85px;}
-    .tab-content.active { display: block; }
-    
-    .item-card { background: var(--card); border: 1px solid #3f3f46; border-radius: 15px; padding: 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; position: relative; overflow: hidden; }
-    .item-card.disabled { opacity: 0.45; filter: grayscale(50%); pointer-events: none; }
-    .premium-card { border-color: var(--ad-color); background: rgba(249, 115, 22, 0.05); flex-direction: column; text-align: center; }
-    
-    .item-icon { font-size: 30px; min-width: 60px; height: 60px; background: rgba(0,0,0,0.4); border-radius: 12px; display: flex; justify-content: center; align-items: center; z-index: 2; border: 1px solid #52525b;}
-    .item-info { flex: 1; z-index: 2; }
-    .item-name { font-size: 15px; font-weight: 900; color: var(--text); margin-bottom: 2px;}
-    .item-desc { font-size: 11px; color: #a1a1aa; margin-bottom: 4px; line-height: 1.3;}
-    .item-stats { font-size: 11px; font-weight: 900; color: var(--accent); }
-    
-    .item-action { text-align: right; z-index: 2; min-width: 75px;}
-    .item-cost { font-size: 15px; font-weight: 900; color: var(--primary); display: block; margin-bottom: 5px; }
-    .item-lvl { font-size: 11px; background: #000; padding: 3px 8px; border-radius: 10px; color: #e2e8f0; font-weight: 900; border: 1px solid #3f3f46;}
-    
-    .milestone-bar { width: 100%; height: 5px; background: #000; border-radius: 3px; margin-top: 5px; overflow: hidden; position: relative;}
-    .milestone-fill { height: 100%; background: var(--gold); transition: width 0.3s ease;}
-    .working-bg { position: absolute; top: 0; left: 0; height: 100%; background: linear-gradient(90deg, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0) 100%); z-index: 1; width: 0%; pointer-events: none;}
-    
-    .prestige-panel { background: #000; border: 2px solid var(--prestige); padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 0 30px rgba(139, 92, 246, 0.2); }
-    .share-count { font-size: 36px; color: var(--prestige); font-weight: 900; margin: 10px 0; text-shadow: 0 0 15px var(--prestige); }
-
-    #adSimulator { background: #000; flex-direction: column; z-index: 4000;}
-    .ad-timer { font-size: 60px; color: #fff; font-weight: 900; margin: 20px 0; }
-    
-    .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #000; padding: 12px 24px; border-radius: 20px; font-weight: bold; z-index: 5000; opacity: 0; transition: 0.3s; pointer-events: none; border: 2px solid #000; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-    .toast.show { opacity: 1; bottom: 100px; }
+    #eventBanner { width: 100%; background: linear-gradient(90deg, #ff3b30, #ff7a00); color: #fff; text-align: center; padding: 6px; font-size: 12px; font-weight: 900; display: none; box-shadow: 0 4px 15px rgba(255,60,0,0.3); }
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #000; padding: 10px 20px; border-radius: 20px; font-weight: bold; z-index: 9999; opacity: 0; transition: 0.3s; text-align: center; pointer-events:none;}
+    .toast.show { opacity: 1; top: 50px; }
 </style>
 </head>
 <body>
 
-<div id="adSimulator" class="modal hidden">
-    <h2 style="color:var(--ad-color);">إعلان ممول (محاكاة)</h2>
-    <div class="ad-timer" id="adTimer">5</div>
-    <p style="color:#fff;">يرجى الانتظار لاستلام المكافأة...</p>
+<div id="eventBanner">🚨 حدث طارئ نشط حالياً!</div>
+
+<div id="dailyRewardModal" class="modal hidden">
+    <div class="modal-box" style="border-color:var(--gold);">
+        <h2 style="color:var(--gold);" id="t_dailyTitle">المكافأة اليومية 🎁</h2>
+        <p style="font-size:12px; color:#a1a1aa; margin-bottom:15px;" id="t_dailyDesc">استمرار دخولك يضاعف جوائزك!</p>
+        <div style="font-size:40px; margin-bottom:10px;">💎</div>
+        <div style="font-size:24px; color:#fff; font-weight:900; margin-bottom:15px;" id="dailyText">+10 Gems</div>
+        <div style="font-size:12px; color:var(--primary); margin-bottom:15px;"><span id="t_streakText">يوم متتالي:</span> <span id="dailyStreak">1</span> 🔥</div>
+        <button class="btn" style="background:var(--gold);" onclick="claimDailyReward()" id="t_claimDailyBtn">استلام</button>
+    </div>
 </div>
 
-<div id="startupModal" class="modal">
+<div id="startupModal" class="modal hidden">
     <div class="modal-box">
-        <h2 style="color:var(--gold);">تأسيس الإمبراطورية</h2>
-        <input type="text" id="companyNameInput" class="modal-input" placeholder="اسم شركتك العظمى" maxlength="25">
-        <button class="btn" onclick="startGame()">اعتماد التسجيل ✍️</button>
+        <h2 style="color:var(--gold);" id="t_setupTitle">تأسيس الإمبراطورية</h2>
+        <input type="text" id="companyNameInput" class="modal-input" placeholder="اسم شركتك" maxlength="20">
+        <button class="btn" onclick="startGame()" id="t_setupBtn">بدء اللعب 🚀</button>
+    </div>
+</div>
+
+<div id="settingsModal" class="modal hidden">
+    <div class="modal-box">
+        <h2 style="color:white; margin-bottom:20px;" id="t_settTitle">الإعدادات</h2>
+        <button id="langToggleBtn" class="btn" style="margin-bottom: 10px; background: var(--prestige); color: white;" onclick="toggleLang()">اللغة: العربية 🌍</button>
+        <button id="soundToggleBtn" class="btn" style="margin-bottom: 10px; background: var(--accent); color: white;" onclick="toggleSound()">الصوت: شغال 🔊</button>
+        <button class="btn btn-prestige" style="margin-bottom: 10px;" onclick="let c=prompt(currentLang==='ar'?'أدخل الكود:':'Code:'); if(c) redeemSecretCode(c);" id="t_promoBtn">كود الهدايا 🎁</button>
+        <button class="btn" style="background: var(--danger); color: white; margin-bottom: 15px;" onclick="hardReset()" id="t_resetBtn">مسح البيانات ⚠️</button>
+        <button class="btn" style="background: #222538; color: white;" onclick="document.getElementById('settingsModal').classList.add('hidden')" id="t_closeBtn">إغلاق</button>
     </div>
 </div>
 
 <div id="offlineModal" class="modal hidden">
     <div class="modal-box" style="border-color:var(--gold);">
-        <h2 style="color:var(--gold);">تقرير الأرباح التلقائية</h2>
-        <div style="font-size:35px; color:var(--primary); font-weight:900; margin:20px 0;">+<span id="offlineAmount">0</span>💰</div>
-        <button class="btn" onclick="closeOfflineModal()">تحويل للخزينة</button>
+        <h2 style="color:var(--gold);" id="t_offlineTitle">تقرير الأرباح (أوفلاين)</h2>
+        <div style="font-size:12px; color:#a1a1aa; margin-top:5px;" id="t_offDesc">مدراؤك واصلوا العمل أثناء غيابك:</div>
+        <div style="font-size:35px; color:var(--primary); font-weight:900; margin:15px 0;">+<span id="offlineAmount">0</span>💰</div>
+        <button class="btn" onclick="closeOfflineModal()" id="t_offlineBtn">تحويل للخزينة</button>
     </div>
 </div>
 
-<div id="prestigeModal" class="modal hidden">
-    <div class="modal-box" style="border-color:var(--prestige);">
-        <h2 style="color:var(--prestige);">إدراج في البورصة 📈</h2>
-        <p style="color:#a1a1aa; font-size:13px; margin-bottom:15px;">طرح الشركة سيصفر كل المباني والممتلكات، لكنك ستربح أسهم ذهبية دائمة. <strong>هذا القرار لا رجعة فيه.</strong></p>
-        <div style="font-size:20px; color:#fff; font-weight:900; margin-bottom:20px;">الأسهم المكتسبة: <span style="color:var(--prestige);" id="pendingShares">0</span> 💠</div>
-        <div style="display:flex; gap:10px;">
-            <button class="btn" style="background:#3f3f46; color:#fff;" onclick="closePrestigeModal()">إلغاء</button>
-            <button class="btn btn-prestige" onclick="executePrestige()">تأكيد الطرح 🚀</button>
-        </div>
+<div id="adSimulator" class="modal hidden">
+    <div style="text-align:center;">
+        <h2 style="color:var(--ad-color);" id="t_simTitle">جاري تحميل الإعلان...</h2>
+        <div style="font-size: 60px; color: #fff; font-weight: 900; margin: 20px 0;" id="adTimer">5</div>
     </div>
 </div>
 
-<div id="adminModal" class="modal hidden">
-    <div class="modal-box" style="border-color:var(--gold);">
-        <h2 style="color:var(--gold);">⚙️ لوحة المطور السرية</h2>
-        <p style="color:#fff; font-size:11px; margin-bottom:15px;">بصفتك مالك اللعبة، يمكنك ضخ مكافآت فورية للخزينة.</p>
-        <input type="number" id="adminMoneyInput" class="modal-input" placeholder="المبلغ المطلوب ضخه 💰">
-        <button class="btn" style="background:var(--gold); margin-bottom:10px;" onclick="executeAdminReward()">توزيع الكاش الإمبراطوري ⚡</button>
-        <button class="btn" style="background:#3f3f46; color:#fff;" onclick="document.getElementById('adminModal').classList.add('hidden')">إغلاق</button>
-    </div>
-</div>
-
-<div class="toast" id="toastMsg">تم!</div>
+<div class="toast" id="toastMsg"><span>تم!</span></div>
 
 <div class="header">
-    <div class="company-name" id="uiCompanyName" onclick="triggerAdminCheck()">الشركة</div>
-    <div class="net-worth"><span id="moneyDisplay">0</span> 💰</div>
-    <div class="income-rate">المتوسط: +<span id="incomeDisplay">0</span> / ثانية</div>
-    
-    <div class="news-ticker">
-        <span class="news-text" id="liveNewsBar">جاري مزامنة خطوط الإنتاج مع البورصة العالمية لـ أثر... 📈</span>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-size:13px; font-weight:bold; color:var(--xp);">Lvl <span id="uiLevel">1</span> <span id="uiTitle" style="color:#a1a1aa; font-size:10px;">[مبتدئ]</span></div>
+        <div style="font-size:14px; font-weight:900; color:var(--text);" id="uiCompanyName">الشركة</div>
+        <div style="font-size:15px; cursor:pointer;" onclick="document.getElementById('settingsModal').classList.remove('hidden')">⚙️</div>
     </div>
-    
-    <div class="boosts-container">
-        <div class="boost-badge badge-x2" id="badgeX2">🔥 ربح x2 (<span id="timerX2">0:00</span>)</div>
-        <div class="boost-badge badge-auto" id="badgeAuto">🤖 نقر تلقائي (<span id="timerAuto">0:00</span>)</div>
+    <div class="xp-bar-container"><div class="xp-fill" id="xpBar" style="width:0%;"></div></div>
+    <div class="top-stats">
+        <div class="stat-money"><span id="moneyDisplay">0</span> 💰</div>
+        <div class="stat-gems"><span id="gemsDisplay">0</span> 💎</div>
     </div>
+    <div style="font-size: 11px; color: var(--gold); font-weight: 900; background: rgba(251, 191, 36, 0.1); padding: 3px 12px; border-radius: 20px; margin-top:5px; display: inline-block; border:1px solid rgba(251,191,36,0.3);">+<span id="incomeDisplay">0</span> / s</div>
 </div>
 
 <div class="clicker-section" id="clickArea">
-    <div id="droneEvent" class="drone hidden" onpointerdown="claimDrone()">🚁</div>
     <div class="main-btn" id="mainBtn" onpointerdown="manualClick(event)">
-        <h2>أثــر</h2>
-        <p>إنتاج</p>
+        <h2 style="color:white; font-size:22px; letter-spacing:1px;" id="t_coreBtn">أثــر</h2>
     </div>
 </div>
 
-<div class="tabs-nav">
-    <button class="tab-btn active" onclick="switchTab('buildings')">منشآت 🏭</button>
-    <button class="tab-btn" onclick="switchTab('upgrades')">أبحاث 🔬</button>
-    <button class="tab-btn prestige-tab" onclick="switchTab('hq')">البورصة 📈</button>
-    <button class="tab-btn premium" onclick="switchTab('store')">متجر 📺</button>
+<div id="tab-buildings" class="tab-content active">
+    <div style="display:flex; justify-content:space-between; margin-bottom: 12px; align-items:center;">
+        <h3 style="color:var(--text); font-size:13px;" id="t_buildHeader">المنشآت المتاحة</h3>
+        <button id="buyMultBtn" class="btn" style="padding: 5px 10px; font-size: 11px; width: auto; background: #141622; border: 1px solid var(--primary); color:var(--primary); border-radius:8px;" onclick="toggleBuyMult()">شراء: x1</button>
+    </div>
+    <div id="buildingsList"></div>
 </div>
 
-<div id="buildings" class="tab-content active"><div id="buildingsList"></div></div>
-<div id="upgrades" class="tab-content"><div id="upgradesList"></div></div>
-
-<div id="hq" class="tab-content">
-    <div class="prestige-panel">
-        <div style="color:#a1a1aa; font-weight:bold; font-size:13px;">أسهمك الذهبية</div>
-        <div class="share-count"><span id="currentShares">0</span> 💠</div>
-        <div style="color:var(--primary); font-weight:bold; font-size:14px; margin-bottom:15px;">مضاعف الأرباح الدائم: +<span id="shareMultiplier">0</span>%</div>
-        <button class="btn btn-prestige" onclick="openPrestigeModal()">إدراج الشركة في البورصة</button>
-        <div style="color:#71717a; font-size:11px; margin-top:10px;">* يتطلب 1 مليار 💰 كحد أدنى للطرح.</div>
+<div id="tab-skills" class="tab-content">
+    <div style="text-align:center; margin-bottom:15px;">
+        <div style="color:#a1a1aa; font-size:12px;" id="t_ppLabel">نقاط المهارة الكونية (PP) 💠</div>
+        <div style="font-size: 28px; color: var(--prestige); font-weight: 900; margin:5px 0;"><span id="ppDisplay">0</span></div>
+        <button class="btn btn-prestige" style="font-size:12px; padding:10px; border-radius:12px;" onclick="executePrestige()" id="t_prestigeBtn">إعادة التعيين (Prestige)</button>
+        <div style="font-size:10px; color:#71717a; margin-top:5px;"><span id="t_pendingLabel">ستربح:</span> <span id="pendingPP" style="color:var(--primary); font-weight:bold;">0</span> 💠</div>
     </div>
-    <div class="item-card" style="display:block; text-align:center; pointer-events:none;">
-        <div style="color:#a1a1aa; font-size:13px; margin-bottom:5px;">إجمالي الأرباح التاريخية</div>
-        <div style="color:var(--primary); font-size:22px; font-weight:900;" id="totalEarnedStats">0 💰</div>
-    </div>
+    <div id="skillTreeList"></div>
 </div>
 
-<div id="store" class="tab-content">
-    <h3 style="color:var(--text); margin-bottom:15px; text-align:center; font-size:15px;">الدعم اللوجستي</h3>
-    <div class="item-card premium-card" style="pointer-events:all;">
-        <div style="font-size:35px; margin-bottom:5px;">⏳</div>
-        <h3 style="color:var(--text); margin-bottom:5px;">آلة الزمن المحدودة</h3>
-        <p style="color:#a1a1aa; font-size:11px; margin-bottom:10px;">احصل على إنتاج <strong style="color:var(--gold);">15 دقيقة</strong> فوراً.</p>
-        <button class="btn btn-ad" onclick="startAd('warp')">مشاهدة إعلان 📺</button>
+<div id="tab-stocks" class="tab-content">
+    <div class="news-ticker" id="marketNewsTicker">📢 أخبار السوق: بورصة أثر تفتتح التداولات اليوم!</div>
+    <div style="text-align:center; margin-bottom:12px; color:#a1a1aa; font-size:11px;" id="t_stockLabel">محفظتك الاستثمارية (تحديث 10s)</div>
+    <div id="stockList"></div>
+</div>
+
+<div id="tab-quests" class="tab-content">
+    <h3 style="color:var(--gold); margin-bottom:12px; text-align:center; font-size:14px;" id="t_questsHeader">المهام اليومية ⏳</h3>
+    <div id="dailyQuestsList"></div>
+    <h3 style="color:var(--accent); margin:20px 0 12px; text-align:center; font-size:14px;" id="t_inboxHeader">البريد والقصة 📖</h3>
+    <div id="inboxList"></div>
+</div>
+
+<div id="tab-store" class="tab-content">
+    <h3 style="color:var(--ad-color); margin-bottom:12px; text-align:center; font-size:14px;" id="t_adHeader">دعم إعلاني 📺</h3>
+    <div class="item-card" style="border-color:var(--ad-color); background:rgba(249,115,22,0.03); flex-direction:column; text-align:center; padding:12px;">
+        <h4 style="color:#fff; font-size:13px;" id="t_adTitle">تسريع الزمن</h4>
+        <p style="color:#a1a1aa; font-size:10px; margin-bottom:10px;" id="t_adDesc">15 دقيقة إنتاج فوري</p>
+        <button class="btn btn-ad" onclick="startAd('warp')" id="t_adBtn">مشاهدة إعلان 📺</button>
     </div>
-    <div class="item-card premium-card" style="pointer-events:all;">
-        <div style="font-size:35px; margin-bottom:5px;">🔥</div>
-        <h3 style="color:var(--text); margin-bottom:5px;">مضاعف الأرباح x2</h3>
-        <p style="color:#a1a1aa; font-size:11px; margin-bottom:10px;">أرباح مضاعفة لمدة <strong style="color:var(--ad-color);">3 دقائق</strong>.</p>
-        <button class="btn btn-ad" onclick="startAd('x2')">مشاهدة إعلان 📺</button>
+    <h3 style="color:var(--gem); margin:15px 0 12px; text-align:center; font-size:14px;" id="t_premiumHeader">متجر الجواهر 💎</h3>
+    <div id="premiumStoreList"></div>
+</div>
+
+<div id="tab-leaderboard" class="tab-content">
+    <h3 style="color:var(--gold); margin-bottom:12px; text-align:center; font-size:14px;" id="t_leadHeader">الصدارة العالمية 👑</h3>
+    <div id="leaderboardList"></div>
+</div>
+
+<div class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('tab-buildings', this)">
+        <div class="nav-icon">🏭</div><div class="nav-text" id="n_bld">المنشآت</div>
     </div>
-    <div class="item-card premium-card" style="pointer-events:all;">
-        <div style="font-size:35px; margin-bottom:5px;">🤖</div>
-        <h3 style="color:var(--text); margin-bottom:5px;">روبوت النقر</h3>
-        <p style="color:#a1a1aa; font-size:11px; margin-bottom:10px;">نقر تلقائي سريع لـ <strong style="color:var(--accent);">20 ثانية</strong>.</p>
-        <button class="btn btn-ad" onclick="startAd('auto')">مشاهدة إعلان 📺</button>
+    <div class="nav-item" onclick="switchTab('tab-skills', this)">
+        <div class="nav-icon" style="color:var(--prestige);">🌳</div><div class="nav-text" style="color:var(--prestige);" id="n_skl">المهارات</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('tab-stocks', this)">
+        <div class="nav-icon" style="color:var(--primary);">📈</div><div class="nav-text" style="color:var(--primary);" id="n_stk">البورصة</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('tab-quests', this)">
+        <div class="nav-icon" style="color:var(--gold);">🏆<span id="mailNotif" style="color:red; font-size:12px; position:absolute; margin-top:-5px; display:none;">●</span></div><div class="nav-text" style="color:var(--gold);" id="n_qst">المهام/البريد</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('tab-store', this)">
+        <div class="nav-icon" style="color:var(--gem);">💎</div><div class="nav-text" style="color:var(--gem);" id="n_str">المتجر</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('tab-leaderboard', this)">
+        <div class="nav-icon" style="color:#a1a1aa;">👑</div><div class="nav-text" style="color:#a1a1aa;" id="n_ldb">الصدارة</div>
     </div>
 </div>
 
 <script>
-const SUFFIXES = ["", " ألف", " مليون", " مليار", " تريليون", " كوادريليون", " كوينتيليون", " سكستيليون", " سبتيليون"];
-function formatNum(num) {
-    if (num < 1000) return Math.floor(num).toString();
-    let tier = Math.log10(Math.abs(num)) / 3 | 0;
-    if(tier >= SUFFIXES.length) return num.toExponential(2);
-    return (num / Math.pow(10, tier * 3)).toFixed(2) + SUFFIXES[tier];
+// === Utilities & Safe Math ===
+const SUFFIXES = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc"];
+function formatNum(num) { 
+    if(isNaN(num) || num < 0) return "0";
+    if (num < 1000) return Math.floor(num).toString(); 
+    let t = Math.log10(Math.abs(num)) / 3 | 0; 
+    if(t >= SUFFIXES.length) return num.toExponential(2); 
+    return (num / Math.pow(10, t * 3)).toFixed(2) + SUFFIXES[t]; 
 }
 
-const NewsDB = [
-    "عاجل: منشآت أثر تُسجل طفرة تاريخية في معدلات إنتاج المشروبات والمكابس! ⚡",
-    "شائعات: بورصة أثر تترقب خطة الطرح الكبرى لإدراج الأسهم الذهبية في السوق المشفر 📈",
-    "الاتحادات اللوجستية: شبكة السكوترات المبرمجة تكتسح مسارات التوصيل السريع محلياً 🛵"
-];
-
-function updateNewsTicker() {
-    document.getElementById('liveNewsBar').innerText = NewsDB[Math.floor(Math.random() * NewsDB.length)];
+function updateGlow() {
+    let t = Math.log10(Math.max(1, GameData.money));
+    let color = 'rgba(0, 255, 163, 0.2)'; 
+    if(t > 6) color = 'rgba(251, 191, 36, 0.3)'; 
+    if(t > 9) color = 'rgba(163, 71, 255, 0.3)'; 
+    document.body.style.boxShadow = `inset 0 0 60px ${color}`;
 }
-setInterval(updateNewsTicker, 12000);
 
-let audioCtx = null;
-function initAudio() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let audioCtx = null; let soundEnabled = localStorage.getItem('athar_sound') !== 'false';
+function toggleSound() { soundEnabled = !soundEnabled; localStorage.setItem('athar_sound', soundEnabled); document.getElementById('soundToggleBtn').innerText = soundEnabled ? (currentLang==='ar'?"الصوت: شغال 🔊":"Sound: ON 🔊") : (currentLang==='ar'?"الصوت: صامت 🔇":"Sound: OFF 🔇"); }
+function initAudio() { if (!audioCtx && soundEnabled) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playTone(f, t, d) { if(!soundEnabled) return; try { initAudio(); if(!audioCtx) return; const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type = t; o.frequency.value = f; g.gain.setValueAtTime(0.1, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + d); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + d); } catch(e) {} }
+function sClick() { playTone(600, 'sine', 0.05); } function sCrit() { playTone(800, 'square', 0.1); setTimeout(()=>playTone(1200, 'triangle', 0.1), 50); } 
+function soundCash() { playTone(900, 'triangle', 0.08); setTimeout(()=>playTone(1400, 'sine', 0.1), 50); } function soundGem() { playTone(1100, 'square', 0.1); }
+
+function spawnParticles(x, y, count, isCrit) {
+    const clickArea = document.getElementById('clickArea');
+    for(let i=0; i<count; i++) {
+        let p = document.createElement('div'); p.className = 'particle'; if(isCrit) p.style.background = 'var(--gem)';
+        p.style.left = x+'px'; p.style.top = y+'px';
+        let ang = Math.random()*Math.PI*2; let dist = 40 + Math.random()*60;
+        p.style.setProperty('--dx', Math.cos(ang)*dist+'px'); p.style.setProperty('--dy', Math.sin(ang)*dist+'px');
+        clickArea.appendChild(p); setTimeout(()=>p.remove(), 500);
     }
 }
 
-function playTone(freq, type, duration) {
-    initAudio();
-    if (!audioCtx) return;
-    try {
-        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-        osc.type = type; osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + duration);
-    } catch(e) {}
-}
-function soundClick() { playTone(520 + Math.random()*120, 'sine', 0.05); }
-function soundCash() { playTone(980, 'triangle', 0.07); setTimeout(() => playTone(1450, 'sine', 0.1), 45); }
+// === Dual Language System ===
+const Langs = {
+    ar: {
+        titles: [{l:1, n:"مبتدئ"}, {l:5, n:"تاجر"}, {l:15, n:"مستثمر"}, {l:35, n:"ملياردير"}, {l:60, n:"إمبراطور"}, {l:110, n:"سيد الأبعاد"}],
+        coreBtn: "أثــر", nav: ["المنشآت", "المهارات", "البورصة", "المهام/البريد", "المتجر", "الصدارة"],
+        buildHeader: "المنشآت المتاحة", multText: "شراء:", ppLabel: "نقاط المهارة (PP) 💠", prestigeBtn: "إعادة التعيين (Prestige)", pendingLabel: "ستربح:",
+        stockLabel: "محفظتك الاستثمارية (تحديث 10s)", buy: "شراء", sell: "بيع", questsHeader: "المهام اليومية ⏳",
+        inboxHeader: "البريد والقصة 📖", adHeader: "دعم إعلاني 📺", adTitle: "تسريع الزمن", adDesc: "15 دقيقة إنتاج فوري",
+        adBtn: "مشاهدة إعلان 📺", premiumHeader: "متجر الجواهر 💎", leadHeader: "الصدارة العالمية 👑", setupTitle: "تأسيس الشركة", setupBtn: "بدء اللعب 🚀",
+        settTitle: "الإعدادات", promoBtn: "كود الهدايا 🎁", resetBtn: "مسح البيانات ⚠️", closeBtn: "إغلاق", dailyTitle: "المكافأة اليومية 🎁",
+        dailyDesc: "استمرار دخولك يضاعف جوائزك!", claimDailyBtn: "استلام", streakText: "يوم متتالي:", lvlUp: "🎉 مستوى جديد: ",
+        invalidCode: "❌ كود خاطئ", codeSuccess: "🎁 تم التفعيل!", lvlText: "Lvl:", you: "أنت", qDone: "تم ✔️", qClaim: "استلام", q1d: "اضغط 200 مرة", q2d: "اشترِ 5 منشآت",
+        evt1: "🚨 طفرة أسهم!", evt2: "🚨 أزمة! الإنتاج -30%", evt3: "🚨 ازدهار! الأرباح x2", evtEnd: "🚨 انتهى الحدث.", offTitle: "تقرير الأرباح (أوفلاين)", offDesc: "مدراؤك واصلوا العمل:", offBtn: "تحويل للخزينة", msNext: "للطفرة القادمة x2"
+    },
+    en: {
+        titles: [{l:1, n:"Novice"}, {l:5, n:"Trader"}, {l:15, n:"Investor"}, {l:35, n:"Billionaire"}, {l:60, n:"Emperor"}, {l:110, n:"Lord"}],
+        coreBtn: "ATHAR", nav: ["Build", "Skills", "Stocks", "Quests/Mail", "Store", "Ranks"],
+        buildHeader: "Infrastructure", multText: "Buy:", ppLabel: "Skill Points (PP) 💠", prestigeBtn: "Prestige (Reset)", pendingLabel: "Pending:",
+        stockLabel: "Investment Portfolio (10s)", buy: "Buy", sell: "Sell", questsHeader: "Daily Quests ⏳",
+        inboxHeader: "Inbox & Story 📖", adHeader: "Ad Support 📺", adTitle: "Time Warp", adDesc: "15 mins instant cash",
+        adBtn: "Watch Ad 📺", premiumHeader: "Gem Store 💎", leadHeader: "Global Leaderboard 👑", setupTitle: "Found Company", setupBtn: "Start 🚀",
+        settTitle: "Settings", promoBtn: "Promo Code 🎁", resetBtn: "Wipe Data ⚠️", closeBtn: "Close", dailyTitle: "Daily Reward 🎁",
+        dailyDesc: "Streaks multiply rewards!", claimDailyBtn: "Claim", streakText: "Streak:", lvlUp: "🎉 Level Up: ",
+        invalidCode: "❌ Invalid Code", codeSuccess: "🎁 Activated!", lvlText: "Lvl:", you: "You", qDone: "Done ✔️", qClaim: "Claim", q1d: "Click 200 times", q2d: "Buy 5 Buildings",
+        evt1: "🚨 Stock Boom!", evt2: "🚨 Crisis! Prod -30%", evt3: "🚨 Boom! Profit x2", evtEnd: "🚨 Event Ended.", offTitle: "Offline Report", offDesc: "Managers worked:", offBtn: "Collect", msNext: "to Next Milestone x2"
+    }
+};
 
+let currentLang = localStorage.getItem('athar_lang_v75') || 'ar';
+function toggleLang() { currentLang = currentLang === 'ar' ? 'en' : 'ar'; localStorage.setItem('athar_lang_v75', currentLang); applyLanguage(); }
+
+function applyLanguage() {
+    document.getElementById('htmlTag').dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+    document.getElementById('langToggleBtn').innerText = currentLang === 'ar' ? "اللغة: العربية 🌍" : "Lang: English 🌍";
+    const L = Langs[currentLang];
+    
+    document.getElementById('t_coreBtn').innerText = L.coreBtn;
+    document.getElementById('n_bld').innerText = L.nav[0]; document.getElementById('n_skl').innerText = L.nav[1]; document.getElementById('n_stk').innerText = L.nav[2];
+    document.getElementById('n_qst').innerText = L.nav[3]; document.getElementById('n_str').innerText = L.nav[4]; document.getElementById('n_ldb').innerText = L.nav[5];
+    document.getElementById('t_buildHeader').innerText = L.buildHeader; document.getElementById('t_ppLabel').innerText = L.ppLabel; document.getElementById('t_prestigeBtn').innerText = L.prestigeBtn; document.getElementById('t_pendingLabel').innerText = L.pendingLabel;
+    document.getElementById('t_stockLabel').innerText = L.stockLabel; document.getElementById('t_questsHeader').innerText = L.questsHeader; document.getElementById('t_inboxHeader').innerText = L.inboxHeader;
+    document.getElementById('t_adHeader').innerText = L.adHeader; document.getElementById('t_adTitle').innerText = L.adTitle; document.getElementById('t_adDesc').innerText = L.adDesc;
+    document.getElementById('t_adBtn').innerText = L.adBtn; document.getElementById('t_premiumHeader').innerText = L.premiumHeader; document.getElementById('t_leadHeader').innerText = L.leadHeader;
+    document.getElementById('t_setupTitle').innerText = L.setupTitle; document.getElementById('t_setupBtn').innerText = L.setupBtn; document.getElementById('t_settTitle').innerText = L.settTitle;
+    document.getElementById('t_promoBtn').innerText = L.promoBtn; document.getElementById('t_resetBtn').innerText = L.resetBtn; document.getElementById('t_closeBtn').innerText = L.closeBtn;
+    document.getElementById('t_dailyTitle').innerText = L.dailyTitle; document.getElementById('t_dailyDesc').innerText = L.dailyDesc; document.getElementById('t_claimDailyBtn').innerText = L.claimDailyBtn;
+    document.getElementById('t_streakText').innerText = L.streakText; document.getElementById('t_offlineTitle').innerText = L.offTitle; document.getElementById('t_offDesc').innerText = L.offDesc; document.getElementById('t_offlineBtn').innerText = L.offBtn;
+    
+    let modeText = currentBuyMult === 'max' ? (currentLang==='ar'?'أقصى':'Max') : `x${currentBuyMult}`; document.getElementById('buyMultBtn').innerText = L.multText + " " + modeText;
+    document.getElementById('soundToggleBtn').innerText = soundEnabled ? (currentLang==='ar'?"الصوت: شغال 🔊":"Sound: ON 🔊") : (currentLang==='ar'?"الصوت: صامت 🔇":"Sound: OFF 🔇");
+    
+    renderLists(); renderSkills(); renderQuests(); renderInbox(); renderLeaderboard(); renderStocks(); renderPremiumStore(); updateTitle();
+}
+
+// === V7.5 RESTORED Databases ===
 const BuildingsDB = [
-    { id: 'b0', name: "جهد هندسي شخصي", desc: "قوة الإنتاج اليدوي الفوري", icon: "🛠️", baseCost: 15, costMult: 1.18, baseYield: 1, cycleTime: 0, type: 'click' },
-    { id: 'b1', name: "مكبس حراري", desc: "طباعة الملابس السريعة", icon: "👕", baseCost: 120, costMult: 1.18, baseYield: 8, cycleTime: 2, type: 'auto' },
-    { id: 'b2', name: "خط مشروبات", desc: "تصنيع مشروب أثر", icon: "⚡", baseCost: 1500, costMult: 1.18, baseYield: 140, cycleTime: 5, type: 'auto' },
-    { id: 'b3', name: "سكوتر توصيل", desc: "توصيل للجامعة", icon: "🛵", baseCost: 18000, costMult: 1.21, baseYield: 4200, cycleTime: 15, type: 'auto' },
-    { id: 'b4', name: "معرض محلي", desc: "مبيعات للجمهور", icon: "🏪", baseCost: 320000, costMult: 1.21, baseYield: 70000, cycleTime: 30, type: 'auto' },
-    { id: 'b5', name: "أبحاث PTUK", desc: "تطوير تقنيات", icon: "🎓", baseCost: 5500000, costMult: 1.23, baseYield: 950000, cycleTime: 60, type: 'auto' },
-    { id: 'b6', name: "مصنع أتمتة", desc: "إنتاج بالروبوتات", icon: "🤖", baseCost: 98000000, costMult: 1.23, baseYield: 14000000, cycleTime: 120, type: 'auto' },
-    { id: 'b7', name: "شحن من الصين", desc: "مواد خام رخيصة", icon: "🚢", baseCost: 2800000000, costMult: 1.25, baseYield: 280000000, cycleTime: 300, type: 'auto' }, 
-    { id: 'b8', name: "احتكار محلي", desc: "العلامة الأولى", icon: "🌍", baseCost: 85000000000, costMult: 1.25, baseYield: 7500000000, cycleTime: 900, type: 'auto' }, 
-    { id: 'b9', name: "تكتل عملاق", desc: "شراء المنافسين", icon: "🏢", baseCost: 3500000000000, costMult: 1.28, baseYield: 220000000000, cycleTime: 3600, type: 'auto' }, 
-    { id: 'b10',name: "مدينة أثر", desc: "دولة داخل دولة", icon: "🏙️", baseCost: 180000000000000, costMult: 1.28, baseYield: 13000000000000, cycleTime: 14400, type: 'auto' }, 
-    { id: 'b11',name: "غزو الفضاء", desc: "مبيعات خارج الكوكب", icon: "🚀", baseCost: 9900000000000000, costMult: 1.35, baseYield: 1800000000000000, cycleTime: 86400, type: 'auto' } 
+    { id: 'b0', name: {ar:"جهد شخصي", en:"Manual Effort"}, icon: "🛠️", baseCost: 15, costMult: 1.15, baseYield: 1, cycleTime: 0, type: 'click' },
+    { id: 'b1', name: {ar:"مكبس حراري", en:"Heat Press"}, icon: "👕", baseCost: 100, costMult: 1.15, baseYield: 5, cycleTime: 2, type: 'auto' },
+    { id: 'b2', name: {ar:"خط مشروبات", en:"Beverage Line"}, icon: "⚡", baseCost: 1200, costMult: 1.16, baseYield: 100, cycleTime: 5, type: 'auto' },
+    { id: 'b3', name: {ar:"سكوتر توصيل", en:"Scooter"}, icon: "🛵", baseCost: 15000, costMult: 1.18, baseYield: 3000, cycleTime: 15, type: 'auto' },
+    { id: 'b4', name: {ar:"معرض أثر", en:"Local Store"}, icon: "🏪", baseCost: 250000, costMult: 1.20, baseYield: 50000, cycleTime: 30, type: 'auto' },
+    { id: 'b5', name: {ar:"أبحاث ذكاء", en:"AI Labs"}, icon: "🤖", baseCost: 5000000, costMult: 1.22, baseYield: 750000, cycleTime: 60, type: 'auto' },
+    { id: 'b6', name: {ar:"مدينة صناعية", en:"Capital Sector"}, icon: "🏙️", baseCost: 2500000000, costMult: 1.26, baseYield: 300000000, cycleTime: 120, type: 'auto' },
+    { id: 'b7', name: {ar:"محطة الزمكان", en:"Space-Time Core"}, icon: "🌌", baseCost: 1e12, costMult: 1.32, baseYield: 1.5e11, cycleTime: 600, type: 'auto' },
+    // THE RESTORED ENDGAME BUILDINGS
+    { id: 'b8', name: {ar:"تعدين فضائي", en:"Asteroid Mining"}, icon: "☄️", baseCost: 5e15, costMult: 1.35, baseYield: 8e13, cycleTime: 1200, type: 'auto' },
+    { id: 'b9', name: {ar:"مصفوفة كمية", en:"Quantum Grid"}, icon: "💻", baseCost: 1e19, costMult: 1.38, baseYield: 5e17, cycleTime: 3600, type: 'auto' },
+    { id: 'b10', name: {ar:"محاكي الأكوان", en:"Multiverse Sim"}, icon: "🪐", baseCost: 1e23, costMult: 1.42, baseYield: 9e21, cycleTime: 14400, type: 'auto' }
 ];
 
-const UpgradesDB = [
-    { id: 'u0', name: "طاقة مضاعفة", desc: "قوة النقرة اليدوية x2", icon: "💪", cost: 2500, targetId: 'b0', mult: 2 },
-    { id: 'u1', name: "حبر احترافي", desc: "إنتاج المكبس الحراري x2", icon: "🎨", cost: 15000, targetId: 'b1', mult: 2 },
-    { id: 'u2', name: "خلطة سرية", desc: "إنتاج المشروبات x2", icon: "🧪", cost: 220000, targetId: 'b2', mult: 2 },
-    { id: 'u3', name: "محرك معدل", desc: "إنتاج السكوتر x3", icon: "🔧", cost: 2800000, targetId: 'b3', mult: 3 },
-    { id: 'u4', name: "إعلانات ممولة", desc: "مبيعات المعرض x3", icon: "📱", cost: 45000000, targetId: 'b4', mult: 3 },
-    { id: 'u5', name: "منحة عليا", desc: "أبحاث الجامعة x3", icon: "🔬", cost: 950000000, targetId: 'b5', mult: 3 },
-    { id: 'u6', name: "ذكاء اصطناعي", desc: "إنتاج الروبوتات x4", icon: "🧠", cost: 18000000000, targetId: 'b6', mult: 4 },
-    { id: 'u7', name: "جمارك مخفضة", desc: "أرباح الشحن x4", icon: "📉", cost: 520000000000, targetId: 'b7', mult: 4 },
-    { id: 'u8', name: "تسويق عالمي", desc: "الاحتكار الإقليمي x5", icon: "🌐", cost: 18000000000000, targetId: 'b8', mult: 5 },
-    { id: 'u9', name: "وقود بلازما", desc: "غزو الفضاء x5", icon: "🌠", cost: 65000000000000000, targetId: 'b11', mult: 5 }
+const Milestones = [10, 25, 50, 100, 250, 500, 1000];
+
+const SkillsDB = [
+    { id: 's1', tier: 1, name: {ar:"قوة النقر", en:"Click Power"}, desc: {ar:"نقر +50%", en:"+50% Click"}, max: 10, costBase: 1, costMult: 2, val: 0.5 },
+    { id: 's2', tier: 1, name: {ar:"مفاوض", en:"Negotiator"}, desc: {ar:"خصم -2%", en:"-2% Discount"}, max: 15, costBase: 2, costMult: 1.5, val: 0.02 },
+    { id: 's3', tier: 2, name: {ar:"أتمتة صناعية", en:"Automation"}, desc: {ar:"سرعة +5%", en:"+5% Speed"}, max: 10, costBase: 5, costMult: 2, val: 0.05 },
+    { id: 's4', tier: 2, name: {ar:"عائد إضافي", en:"Bonus Yield"}, desc: {ar:"دخل الأوفلاين +10%", en:"+10% Offline"}, max: 5, costBase: 10, costMult: 3, val: 0.1 }
+];
+
+let StocksDB = [
+    { id: 'st1', name: {ar:"عقارات أثر", en:"Real Estate"}, price: 50, trend: 1, vol: 0.05, owned: 0, history: [50, 50, 50, 50, 50] },
+    { id: 'st2', name: {ar:"تقنية المستقبل", en:"Tech Stock"}, price: 150, trend: 1, vol: 0.15, owned: 0, history: [150, 150, 150, 150, 150] },
+    { id: 'st3', name: {ar:"عملة أثر الرقمية", en:"Athar Crypto"}, price: 500, trend: -1, vol: 0.40, owned: 0, history: [500, 500, 500, 500, 500] }
+];
+let currentMarketNews = "";
+
+let StoryInbox = [
+    { id: 'msg1', trigger: 10000, title: {ar:"مستثمر ملاك", en:"Angel Investor"}, text: {ar:"أتابع مشروعك الناشئ بتقدير، خذ هذا التمويل الأولي واستمر!", en:"I'm tracking your startup. Take this seed capital!"}, reward: 5000, claimed: false },
+    { id: 'msg2', trigger: 1e6, title: {ar:"هيئة الضرائب", en:"Tax Bureau"}, text: {ar:"تهانينا على المليون الأول. تأكد من سلامة ملفاتك المالية.", en:"Congrats on the first million. Keep files clean."}, reward: 0, claimed: false },
+    // RESTORED STORY MESSAGE
+    { id: 'msg3', trigger: 1e9, title: {ar:"منافس مجهول", en:"Anonymous Rival"}, text: {ar:"لن تدوم سيطرتك على الأسواق طويلاً، البورصة ستكشف حجمك الحقيقي!", en:"Your monopoly won't last. The market will crush you!"}, reward: 100, isGem: true, claimed: false }
+];
+
+const PremiumStoreDB = [
+    { id: 'p1', title: {ar:"شهادة الجودة", en:"Quality Token"}, desc: {ar:"مضاعف دائم x2", en:"Perm x2 Boost"}, cost: 50, mult: 2 },
+    { id: 'p2', title: {ar:"إعفاء تجاري", en:"Trade Shield"}, desc: {ar:"مضاعف دائم x3", en:"Perm x3 Boost"}, cost: 150, mult: 3 }
 ];
 
 let GameData = {
-    companyName: "", money: 0, totalEarned: 0, prestigeShares: 0,
-    lastSaved: Date.now(), buildings: {}, upgrades: {}, timers: {},
-    boosts: { x2End: 0, autoEnd: 0 }
+    companyName: "", money: 0, gems: 0, totalEarned: 0, xp: 0, level: 1, lastSaved: Date.now(),
+    buildings: {}, timers: {}, skills: {}, pp: 0, totalPP: 0, usedCodes: [], lastLoginDay: "", loginStreak: 0,
+    stocks: { st1: 0, st2: 0, st3: 0 }, quests: { date: "", list: [] }, inboxProgress: [], premiumMult: 1
 };
 
-let cache = { clickPower: 1, passiveIncome: 0 };
-let droneActive = false; let needsUIUpdate = false;
-let adminClickCount = 0; let lastAdminClickTime = 0;
+let cache = { clickPower: 1, passiveIncome: 0, discount: 0, speedMult: 1, offlineBonus: 1 };
+let needsUIUpdate = false; let buyModes = [1, 10, 100, 'max']; let buyModeIdx = 0; let currentBuyMult = 1;
+let eventMultiplier = 1; let currentEventTimer = 0;
 
+// === Game Initialization ===
 function initGame() {
-    let saved = localStorage.getItem('AtharTimerSecureV2');
+    let saved = localStorage.getItem('AtharTycoonV75_Save');
     if (saved) {
         GameData = JSON.parse(saved);
-        if(!GameData.boosts) GameData.boosts = { x2End: 0, autoEnd: 0 };
-        if(!GameData.timers) GameData.timers = {};
-        BuildingsDB.forEach(b => { 
-            if(GameData.buildings[b.id] === undefined) GameData.buildings[b.id] = 0; 
-            if(GameData.timers[b.id] === undefined) GameData.timers[b.id] = 0;
-        });
-        UpgradesDB.forEach(u => { if(GameData.upgrades[u.id] === undefined) GameData.upgrades[u.id] = false; });
-        document.getElementById('startupModal').classList.add('hidden');
+        if(!GameData.xp) GameData.xp = 0; if(!GameData.level) GameData.level = 1;
+        if(!GameData.skills) GameData.skills = {}; if(!GameData.stocks) GameData.stocks = { st1:0, st2:0, st3:0 };
+        if(!GameData.inboxProgress) GameData.inboxProgress = [];
+        if(!GameData.premiumMult) GameData.premiumMult = 1;
+        BuildingsDB.forEach(b => { if(GameData.buildings[b.id] === undefined) GameData.buildings[b.id] = 0; if(GameData.timers[b.id] === undefined) GameData.timers[b.id] = 0; });
+        SkillsDB.forEach(s => { if(GameData.skills[s.id] === undefined) GameData.skills[s.id] = 0; });
+        StocksDB.forEach(s => { if(GameData.stocks[s.id] !== undefined) s.owned = GameData.stocks[s.id]; }); 
         document.getElementById('uiCompanyName').innerText = GameData.companyName;
-        checkOfflineProgress();
     } else {
         BuildingsDB.forEach(b => { GameData.buildings[b.id] = 0; GameData.timers[b.id] = 0; });
-        UpgradesDB.forEach(u => GameData.upgrades[u.id] = false);
+        SkillsDB.forEach(s => { GameData.skills[s.id] = 0; });
         document.getElementById('startupModal').classList.remove('hidden');
     }
-    calculateStats(); renderLists(); updateUI(); updateNewsTicker();
-    requestAnimationFrame(gameLoop);
-    setInterval(saveGame, 1000);
-    setInterval(trySpawnDrone, 90000); 
+    if(isNaN(GameData.money) || GameData.money < 0) GameData.money = 0;
+    
+    checkOfflineProgress(); generateDailyQuests(); checkDailyReward(); calculateStats(); updateGlow(); applyLanguage();
+    setInterval(updateStocks, 10000); setInterval(triggerRandomEvent, 45000);
+    requestAnimationFrame(gameLoop); setInterval(saveGame, 1000);
 }
 
-function startGame() {
-    initAudio();
-    let name = document.getElementById('companyNameInput').value.trim();
-    GameData.companyName = name === "" ? "إمبراطورية أثر" : name;
-    document.getElementById('uiCompanyName').innerText = GameData.companyName;
-    document.getElementById('startupModal').classList.add('hidden');
-    soundCash();
-    showToast("💵 أهلاً بك في عالم أثر الاستراتيجي!");
-    saveGame();
-}
+function startGame() { initAudio(); let n = document.getElementById('companyNameInput').value.trim(); GameData.companyName = n===""?"Athar":n; document.getElementById('uiCompanyName').innerText = GameData.companyName; document.getElementById('startupModal').classList.add('hidden'); soundCash(); saveGame(); updateUI(); }
+function saveGame() { GameData.lastSaved = Date.now(); StocksDB.forEach(s => { GameData.stocks[s.id] = s.owned; }); localStorage.setItem('AtharTycoonV75_Save', JSON.stringify(GameData)); }
+function hardReset() { if(confirm(currentLang==='ar'?'مسح كل البيانات؟':'Wipe all records?')) { localStorage.removeItem('AtharTycoonV75_Save'); location.reload(); } }
+function addMoney(amt) { if(amt > 0 && !isNaN(amt)) { GameData.money += amt; GameData.totalEarned += amt; needsUIUpdate = true; checkInboxTriggers(); } }
+function addXP(amt) { GameData.xp += amt; checkLevel(); needsUIUpdate = true; }
 
-function saveGame() {
-    GameData.lastSaved = Date.now();
-    localStorage.setItem('AtharTimerSecureV2', JSON.stringify(GameData));
-}
+// === Advanced Logic (Milestones) ===
+function getMilestoneMult(lvl) { let mult = 1; Milestones.forEach(m => { if(lvl >= m) mult *= 2; }); return mult; }
+function getNextMilestone(lvl) { for(let i=0; i<Milestones.length; i++) { if(lvl < Milestones[i]) return Milestones[i]; } return "MAX"; }
 
+// === Core Mechanics ===
 function checkOfflineProgress() {
-    let now = Date.now();
-    let diff = (now - GameData.lastSaved) / 1000;
-    if (diff > 28800) diff = 28800; 
+    let now = Date.now(); let diff = (now - GameData.lastSaved) / 1000;
+    if (diff < 0 || isNaN(diff)) { GameData.lastSaved = now; return; }
+    if (diff > 28800) diff = 28800; // 8h max
     if (diff > 60) {
+        calculateStats(); 
         let earned = 0;
         BuildingsDB.forEach(b => {
             if(b.type === 'auto' && GameData.buildings[b.id] > 0) {
-                let totalTime = GameData.timers[b.id] + (diff * 0.45); 
-                let cycles = Math.floor(totalTime / b.cycleTime);
-                GameData.timers[b.id] = totalTime % b.cycleTime;
-                earned += cycles * getBuildingYield(b);
+                let totalTime = GameData.timers[b.id] + (diff * 0.45 * cache.offlineBonus); 
+                let cycles = Math.floor(totalTime / (b.cycleTime/cache.speedMult));
+                GameData.timers[b.id] = totalTime % (b.cycleTime/cache.speedMult);
+                earned += cycles * getBuildingYield(b) * GameData.premiumMult;
             }
         });
-        if(earned > 0) {
-            addMoney(earned);
-            document.getElementById('offlineAmount').innerText = formatNum(earned);
-            document.getElementById('offlineModal').classList.remove('hidden');
-        }
+        if(earned > 0 && !isNaN(earned)) { addMoney(earned); document.getElementById('offlineAmount').innerText = formatNum(earned); document.getElementById('offlineModal').classList.remove('hidden'); }
     }
     GameData.lastSaved = now;
 }
+function closeOfflineModal() { document.getElementById('offlineModal').classList.add('hidden'); initAudio(); }
 
-function closeOfflineModal() { document.getElementById('offlineModal').classList.add('hidden'); soundCash(); }
-
-function showToast(msg) { 
-    const t = document.getElementById('toastMsg'); 
-    t.innerText = msg; 
-    t.classList.add('show'); 
-    setTimeout(() => t.classList.remove('show'), 2000); 
+function triggerRandomEvent() {
+    if(currentEventTimer > 0) return;
+    let r = Math.random(); const banner = document.getElementById('eventBanner'); const L = Langs[currentLang];
+    if(r < 0.15) { eventMultiplier = 1; StocksDB.forEach(s => s.price = Math.floor(s.price * 1.5)); renderStocks(); showToast(L.evt1); } 
+    else if(r > 0.15 && r < 0.30) { eventMultiplier = 0.7; banner.innerText = L.evt2; banner.style.display = 'block'; currentEventTimer = 15; } 
+    else if(r > 0.75) { eventMultiplier = 2; banner.innerText = L.evt3; banner.style.display = 'block'; currentEventTimer = 20; }
 }
 
-function addMoney(amt) { if(amt > 0) { GameData.money += amt; GameData.totalEarned += amt; needsUIUpdate = true; } }
+function checkLevel() {
+    let req = Math.pow(GameData.level, 2) * 100;
+    if(GameData.xp >= req) { GameData.level++; GameData.xp -= req; showToast(Langs[currentLang].lvlUp + GameData.level); soundCash(); updateTitle(); }
+}
+function updateTitle() {
+    let titlesList = Langs[currentLang].titles; let t = titlesList[0].n;
+    for(let i=titlesList.length-1; i>=0; i--) { if(GameData.level >= titlesList[i].l) { t = titlesList[i].n; break; } }
+    document.getElementById('uiLevel').innerText = GameData.level; document.getElementById('uiTitle').innerText = `[${t}]`;
+    let req = Math.pow(GameData.level, 2) * 100; document.getElementById('xpBar').style.width = Math.min(100, (GameData.xp / req)*100) + '%';
+}
 
-function triggerAdminCheck() {
-    let now = Date.now();
-    if (now - lastAdminClickTime > 2000) adminClickCount = 0;
-    lastAdminClickTime = now; adminClickCount++;
-    if (adminClickCount >= 5) {
-        adminClickCount = 0;
-        let pwd = prompt("أدخل رمز المطور السري:");
-        if (pwd === "2025") document.getElementById('adminModal').classList.remove('hidden');
+function checkDailyReward() {
+    let today = new Date().toDateString();
+    if(GameData.lastLoginDay !== today) {
+        let yest = new Date(Date.now() - 86400000).toDateString();
+        if(GameData.lastLoginDay === yest) GameData.loginStreak++; else GameData.loginStreak = 1;
+        let reward = Math.min(50, 5 + (GameData.loginStreak * 5));
+        document.getElementById('dailyText').innerText = `+${reward} Gems`; document.getElementById('dailyStreak').innerText = GameData.loginStreak;
+        document.getElementById('dailyRewardModal').classList.remove('hidden'); GameData.lastLoginDay = today;
     }
 }
+function claimDailyReward() { let reward = Math.min(50, 5 + (GameData.loginStreak * 5)); GameData.gems += reward; soundGem(); updateUI(); document.getElementById('dailyRewardModal').classList.add('hidden'); }
 
-function executeAdminReward() {
-    let m = parseFloat(document.getElementById('adminMoneyInput').value) || 0;
-    if (m > 0) { GameData.money += m; GameData.totalEarned += m; }
-    document.getElementById('adminMoneyInput').value = '';
-    document.getElementById('adminModal').classList.add('hidden');
-    soundCash(); calculateStats(); updateUI();
-    showToast("💎 تم ضخ الأرباح الإدارية بنجاح!");
+function generateDailyQuests() {
+    let today = new Date().toDateString();
+    if(GameData.quests.date !== today) { GameData.quests = { date: today, list: [ { id: 'q1', type: 'click', target: 200, prog: 0, reward: 10, claimed: false }, { id: 'q2', type: 'build', target: 5, prog: 0, reward: 15, claimed: false } ]}; }
+    renderQuests();
 }
-
-function updateHqTab() {
-    document.getElementById('currentShares').innerText = formatNum(GameData.prestigeShares);
-    document.getElementById('shareMultiplier').innerText = formatNum(GameData.prestigeShares * 10);
-    document.getElementById('totalEarnedStats').innerText = formatNum(GameData.totalEarned) + " 💰";
+function updateQuestProgress(type, amt) {
+    if(!GameData.quests || !GameData.quests.list) return;
+    GameData.quests.list.forEach(q => { if(q.type === type && !q.claimed && q.prog < q.target) { q.prog += amt; if(q.prog >= q.target) showToast("🏆!"); } }); renderQuests();
 }
+function claimQuest(idx) { let q = GameData.quests.list[idx]; if(q && q.prog >= q.target && !q.claimed) { q.claimed = true; GameData.gems += q.reward; soundGem(); updateUI(); renderQuests(); } }
 
-function calcPendingShares() {
-    if (GameData.totalEarned < 1e9) return 0;
-    return Math.floor(Math.cbrt(GameData.totalEarned / 1e9));
-}
+function toggleBuyMult() { buyModeIdx = (buyModeIdx + 1) % buyModes.length; currentBuyMult = buyModes[buyModeIdx]; let t = currentBuyMult === 'max' ? (currentLang==='ar'?'أقصى':'Max') : `x${currentBuyMult}`; document.getElementById('buyMultBtn').innerText = Langs[currentLang].multText + " " + t; updateUI(); }
+function getCumulativeCost(b, count) { let lvl = GameData.buildings[b.id] || 0; let c = b.baseCost * Math.pow(b.costMult, lvl) * (1 - cache.discount); if (count === 1) return c; return c * (Math.pow(b.costMult, count) - 1) / (b.costMult - 1); }
+function getMaxAffordable(b) { let lvl = GameData.buildings[b.id] || 0; let baseC = b.baseCost * (1 - cache.discount); let c = baseC * Math.pow(b.costMult, lvl); if (GameData.money < c) return 0; return Math.max(0, Math.floor(Math.log((GameData.money * (b.costMult - 1) / c) + 1) / Math.log(b.costMult))); }
 
-function openPrestigeModal() {
-    let pending = calcPendingShares();
-    if (pending < 1) return alert("تحتاج لـ 1 مليار كحد أدنى للطرح!");
-    document.getElementById('pendingShares').innerText = formatNum(pending);
-    document.getElementById('prestigeModal').classList.remove('hidden');
-}
-function closePrestigeModal() { document.getElementById('prestigeModal').classList.add('hidden'); }
-
-function executePrestige() {
-    let pending = calcPendingShares();
-    if(pending >= 1) {
-        GameData.prestigeShares += pending;
-        GameData.money = 0; GameData.totalEarned = 0;
-        BuildingsDB.forEach(b => { GameData.buildings[b.id] = 0; GameData.timers[b.id] = 0; });
-        UpgradesDB.forEach(u => GameData.upgrades[u.id] = false);
-        closePrestigeModal(); calculateStats(); renderLists(); updateUI(); saveGame();
-        soundCash();
-        showToast("🚀 تم الإدراج بالبورصة وتحديث الأسهم الذهبية!");
-    }
-}
-
-function startAd(type) {
-    initAudio();
-    activeAdReward = type;
-    document.getElementById('adSimulator').classList.remove('hidden');
-    let timeLeft = 5; document.getElementById('adTimer').innerText = timeLeft;
-    let timer = setInterval(() => {
-        timeLeft--; document.getElementById('adTimer').innerText = timeLeft;
-        if(timeLeft <= 0) {
-            clearInterval(timer); document.getElementById('adSimulator').classList.add('hidden');
-            grantReward(activeAdReward);
-        }
-    }, 1000);
-}
-
-function grantReward(type) {
-    let now = Date.now();
-    if (type === 'warp') {
-        let earned = 0;
-        BuildingsDB.forEach(b => {
-            if(b.type === 'auto' && GameData.buildings[b.id] > 0) earned += Math.floor(900 / b.cycleTime) * getBuildingYield(b);
-        });
-        if(earned === 0) earned = 500;
-        addMoney(earned);
-        soundCash();
-        showToast(`⏳ تمت قفزة الزمن! ربحت ${formatNum(earned)}💰`);
-    } 
-    else if (type === 'x2') { GameData.boosts.x2End = now + 180000; calculateStats(); showToast("🔥 تم مضاعفة أرباح المنشآت!"); } 
-    else if (type === 'auto') { GameData.boosts.autoEnd = now + 20000; showToast("🤖 روبوت النقر السريع يعمل الآن!"); }
-    updateUI();
-}
-
-function updateBoostsUI() {
-    let now = Date.now();
-    let bX2 = document.getElementById('badgeX2'), tX2 = document.getElementById('timerX2');
-    if (GameData.boosts.x2End > now) { bX2.classList.add('active'); let s = Math.floor((GameData.boosts.x2End - now)/1000); tX2.innerText = `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`; } else { bX2.classList.remove('active'); }
-    let bAu = document.getElementById('badgeAuto'), tAu = document.getElementById('timerAuto');
-    if (GameData.boosts.autoEnd > now) { bAu.classList.add('active'); tAu.innerText = Math.floor((GameData.boosts.autoEnd - now)/1000) + 's'; } else { bAu.classList.remove('active'); }
-}
-
-function getBuildingCost(b) { return b.baseCost * Math.pow(b.costMult, GameData.buildings[b.id]); }
-function getBuildingYield(b) {
-    let lvl = GameData.buildings[b.id]; if (lvl === 0) return 0;
-    let out = b.baseYield * lvl * Math.pow(2, Math.floor(lvl / 50)); 
-    UpgradesDB.forEach(u => { if(u.targetId === b.id && GameData.upgrades[u.id]) out *= u.mult; });
-    out *= (1 + (GameData.prestigeShares * 0.10)); 
-    return out;
+function getBuildingYield(b) { 
+    let lvl = GameData.buildings[b.id]; if (lvl === 0) return 0; 
+    let msMult = getMilestoneMult(lvl);
+    return b.baseYield * lvl * msMult; 
 }
 
 function calculateStats() {
-    cache.clickPower = getBuildingYield(BuildingsDB[0]) || (1 * (1 + (GameData.prestigeShares * 0.10)));
-    cache.passiveIncome = 0;
-    BuildingsDB.forEach(b => { if(b.type === 'auto' && GameData.buildings[b.id] > 0) cache.passiveIncome += getBuildingYield(b) / b.cycleTime; });
-    if (GameData.boosts.x2End > Date.now()) cache.passiveIncome *= 2;
-    updateHqTab();
+    cache.discount = GameData.skills['s2'] ? GameData.skills['s2'] * SkillsDB.find(x=>x.id==='s2').val : 0; 
+    cache.speedMult = Math.max(1, 1 + (GameData.skills['s3'] ? GameData.skills['s3'] * SkillsDB.find(x=>x.id==='s3').val : 0));
+    cache.offlineBonus = 1 + (GameData.skills['s4'] ? GameData.skills['s4'] * SkillsDB.find(x=>x.id==='s4').val : 0);
+    
+    let clickBase = GameData.buildings['b0'] > 0 ? getBuildingYield(BuildingsDB[0]) : 1;
+    cache.clickPower = clickBase * (1 + (GameData.skills['s1'] ? GameData.skills['s1'] * SkillsDB.find(x=>x.id==='s1').val : 0)) * GameData.premiumMult;
+    
+    cache.passiveIncome = 0; 
+    BuildingsDB.forEach(b => { if(b.type === 'auto' && GameData.buildings[b.id] > 0) cache.passiveIncome += (getBuildingYield(b) * GameData.premiumMult) / (b.cycleTime / cache.speedMult); });
 }
 
 function manualClick(e) {
-    initAudio();
-    addMoney(cache.clickPower); soundClick();
-    const btn = document.getElementById('mainBtn'); btn.style.transform = "scale(0.92)"; setTimeout(() => btn.style.transform = "none", 60);
-    let x = (e && e.touches) ? e.touches[0].clientX : (e ? e.clientX : window.innerWidth/2);
-    let y = (e && e.touches) ? e.touches[0].clientY : (e ? e.clientY : window.innerHeight/4);
+    initAudio(); let pwr = cache.clickPower * (eventMultiplier > 1 ? eventMultiplier : 1); 
+    let isCrit = Math.random() < 0.10; if(isCrit) { pwr *= 5; sCrit(); } else { sClick(); }
+    addMoney(pwr); addXP(1); updateQuestProgress('click', 1);
+    
+    const btn = document.getElementById('mainBtn'); btn.style.transform = "scale(0.88)"; setTimeout(() => btn.style.transform = "none", 60);
     const clickArea = document.getElementById('clickArea');
-    const fTxt = document.createElement('div'); fTxt.className = 'floating-text'; fTxt.innerText = `+${formatNum(cache.clickPower)}`;
-    fTxt.style.left = `${x - 20}px`; fTxt.style.top = `${y - 40}px`; clickArea.appendChild(fTxt); setTimeout(() => fTxt.remove(), 650);
-
-    for (let i = 0; i < 4; i++) {
-        const p = document.createElement('div'); p.className = 'particle'; p.innerText = '🪙';
-        p.style.left = `${x}px`; p.style.top = `${y}px`;
-        let angle = Math.random() * Math.PI * 2, velocity = 35 + Math.random() * 55;
-        p.style.setProperty('--x', `${Math.cos(angle) * velocity}px`); p.style.setProperty('--y', `${Math.sin(angle) * velocity}px`);
-        clickArea.appendChild(p); setTimeout(() => p.remove(), 580);
+    if(clickArea.childElementCount < 15) {
+        const fTxt = document.createElement('div'); fTxt.className = 'floating-text'; fTxt.innerText = `+${formatNum(pwr)}`;
+        if(isCrit) fTxt.classList.add('crit-text');
+        let x = e.clientX || window.innerWidth/2; let y = e.clientY || 150;
+        fTxt.style.left = (x - 20) + 'px'; fTxt.style.top = (y - 40) + 'px';
+        clickArea.appendChild(fTxt); setTimeout(() => fTxt.remove(), 600);
+        spawnParticles(x, y, isCrit ? 5 : 2, isCrit);
     }
     updateUI();
 }
 
 function buyBuilding(id) {
-    let b = BuildingsDB.find(x => x.id === id); if(!b) return; let c = getBuildingCost(b);
-    if (GameData.money >= c && c >= 0) { 
-        GameData.money -= c; GameData.buildings[id]++; soundCash(); calculateStats(); renderLists(); updateUI(); 
-        showToast(`🏭 تمت ترقية منشأة: ${b.name}`);
-    }
-}
-function buyUpgrade(id) {
-    let u = UpgradesDB.find(x => x.id === id); if(!u) return;
-    if (!GameData.upgrades[id] && GameData.money >= u.cost) { 
-        GameData.money -= u.cost; GameData.upgrades[id] = true; soundCash(); calculateStats(); renderLists(); updateUI(); 
-        showToast(`🔬 تفعيل البحث: ${u.name}`);
+    initAudio(); let b = BuildingsDB.find(x => x.id === id); if(!b) return;
+    let count = currentBuyMult; if (currentBuyMult === 'max') count = getMaxAffordable(b);
+    if(count <= 0) return; let c = getCumulativeCost(b, count);
+    
+    let oldLvl = GameData.buildings[id];
+    if (GameData.money >= c) { 
+        GameData.money -= c; GameData.buildings[id] += count; addXP(5 * count); updateQuestProgress('build', count); 
+        soundCash(); calculateStats(); renderLists(); updateUI(); updateGlow(); 
+        
+        let nextMs = getNextMilestone(oldLvl);
+        if(GameData.buildings[id] >= nextMs) { showToast(`🚀 طفرة إنتاج: ${b.name[currentLang]} x2!`); }
     }
 }
 
-function trySpawnDrone() {
-    if (droneActive || Math.random() > 0.3) return; const drone = document.getElementById('droneEvent');
-    drone.style.top = (10 + Math.random() * 60) + '%'; drone.style.transform = 'translateX(-100px)'; drone.classList.remove('hidden'); droneActive = true;
-    setTimeout(() => { drone.style.transform = `translateX(${window.innerWidth + 100}px)`; }, 50);
-    setTimeout(() => { drone.classList.add('hidden'); droneActive = false; }, 8000);
+function calcPendingPP() { if (GameData.totalEarned < 1e6) return 0; return Math.floor(Math.cbrt(GameData.totalEarned / 1e6)); }
+function executePrestige() {
+    let p = calcPendingPP(); if(p < 1) return alert(currentLang==='ar'?"تحتاج مليون كاش على الأقل!":"Requires 1M cash minimum!");
+    if(confirm(currentLang==='ar'?'الـ Prestige سيصفر المنشآت مقابل نقاط مهارة دائمة. متأكد؟':'Prestige wipes buildings for permanent Skill Points. Sure?')) {
+        GameData.pp += p; GameData.totalPP += p; GameData.money = 0; GameData.totalEarned = 0; GameData.xp = 0; GameData.level = 1;
+        BuildingsDB.forEach(b => { GameData.buildings[b.id] = 0; GameData.timers[b.id] = 0; });
+        calculateStats(); renderLists(); renderSkills(); updateUI(); updateTitle(); saveGame(); showToast("💠"); updateGlow();
+    }
 }
-function claimDrone() {
-    if (!droneActive) return; const d = document.getElementById('droneEvent'); d.classList.add('hidden'); droneActive = false;
-    let r = Math.max(100, cache.passiveIncome * 20); addMoney(r); soundCash(); showToast(`🚁 صندوق دعم جوي! +${formatNum(r)}💰`); updateUI();
+function buySkill(id) {
+    let s = SkillsDB.find(x=>x.id===id); let lvl = GameData.skills[id] || 0; if(lvl >= s.max) return; let cost = Math.floor(s.costBase * Math.pow(s.costMult, lvl));
+    if(GameData.pp >= cost) { GameData.pp -= cost; GameData.skills[id] = lvl+1; soundCash(); calculateStats(); renderSkills(); renderLists(); updateUI(); }
 }
 
-function renderLists() {
-    const bList = document.getElementById('buildingsList'); if(!bList) return; bList.innerHTML = '';
-    BuildingsDB.forEach(b => {
-        let c = getBuildingCost(b), lvl = GameData.buildings[b.id];
-        let statTxt = b.type === 'click' ? `+${formatNum(getBuildingYield(b))}/نقرة` : `+${formatNum(getBuildingYield(b))} كل ${b.cycleTime}s`;
-        let nextMilestone = (Math.floor(lvl / 50) + 1) * 50, pct = (lvl === 0) ? 0 : (lvl % 50) / 50 * 100;
-        bList.innerHTML += `
-        <div class="item-card ${GameData.money >= c ? '' : 'disabled'}" onclick="buyBuilding('${b.id}')" id="card-${b.id}">
-            <div class="working-bg" id="bg-${b.id}"></div><div class="item-icon">${b.icon}</div>
-            <div class="item-info"><div class="item-name">${b.name}</div><div class="item-stats">⚡ ${statTxt}</div>
-                <div class="milestone-bar" style="height:8px;"><div class="milestone-fill" style="width:${pct}%"></div>
-                    <div style="position:absolute; right:2px; top:-1px; font-size:8px; color:#000; font-weight:bold;">${lvl}/${nextMilestone}</div>
-                </div>
-            </div><div class="item-action"><span class="item-cost">${formatNum(c)} 💰</span><span class="item-lvl">Lvl ${lvl}</span></div>
+// === V7.5 Pro Stock Market Logic ===
+function updateStocks() {
+    let newsOpts = [
+        {ar:"الذكاء الاصطناعي يكتسح الأسواق!", en:"AI taking over markets!", trendMod: 1, id:'st2'},
+        {ar:"انهيار حاد في أسعار العملات الرقمية!", en:"Crypto crash imminent!", trendMod: -1, id:'st3'},
+        {ar:"استقرار عام في سوق العقارات.", en:"Real estate remains stable.", trendMod: 1, id:'st1'}
+    ];
+    let activeNews = newsOpts[Math.floor(Math.random() * newsOpts.length)];
+    document.getElementById('marketNewsTicker').innerText = "📢 " + activeNews[currentLang];
+    
+    StocksDB.forEach(s => { 
+        if(s.id === activeNews.id) s.trend = activeNews.trendMod; 
+        let change = (Math.random() - 0.5 + (s.trend * 0.1)) * s.vol; 
+        s.price = Math.max(1, Math.floor(s.price * (1 + change))); 
+        if(Math.random() < 0.2) s.trend *= -1; 
+        
+        s.history.push(s.price);
+        if(s.history.length > 5) s.history.shift(); 
+    });
+    renderStocks();
+}
+function buyStock(id) { let s = StocksDB.find(x=>x.id===id); if(GameData.money >= s.price) { GameData.money -= s.price; s.owned++; soundCash(); updateUI(); renderStocks(); } }
+function sellStock(id) { let s = StocksDB.find(x=>x.id===id); if(s.owned > 0) { s.owned--; addMoney(Math.max(1, Math.floor(s.price * 0.98))); soundCash(); updateUI(); renderStocks(); } }
+
+function checkInboxTriggers() {
+    StoryInbox.forEach(m => {
+        if(!m.claimed && !GameData.inboxProgress.includes(m.id) && GameData.totalEarned >= m.trigger) {
+            GameData.inboxProgress.push(m.id); document.getElementById('mailNotif').style.display = 'inline'; showToast("✉️!"); renderInbox();
+        }
+    });
+}
+function claimMail(id) {
+    let m = StoryInbox.find(x=>x.id===id); if(!m) return; m.claimed = true; if(m.isGem) GameData.gems += m.reward; else addMoney(m.reward);
+    soundCash(); document.getElementById('mailNotif').style.display = 'none'; updateUI(); renderInbox();
+}
+
+function redeemSecretCode(input) {
+    const codes = { "MEGA": {m: 1e12, g:500}, "FADI2026": {m: 1e15, g:1000} }; input = input.trim().toUpperCase();
+    if(input === "" || GameData.usedCodes.includes(input)) return alert(Langs[currentLang].invalidCode);
+    if(codes[input]) { GameData.usedCodes.push(input); addMoney(codes[input].m); GameData.gems += codes[input].g; showToast(Langs[currentLang].codeSuccess); soundGem(); updateUI(); }
+}
+
+let activeAdReward = "";
+function startAd(type) {
+    initAudio(); activeAdReward = type;
+    if (typeof window.admob !== 'undefined' || typeof window.AdMob !== 'undefined') {
+        try { let admobInstance = window.admob || window.AdMob; admobInstance.rewarded.show({ id: 'ca-app-pub-3574836580564688/214634202' }).then(() => { grantReward(activeAdReward); }).catch((err) => { startFallbackAdSimulation(); }); } catch (e) { startFallbackAdSimulation(); }
+    } else { startFallbackAdSimulation(); }
+}
+function startFallbackAdSimulation() {
+    document.getElementById('adSimulator').classList.remove('hidden'); let timeLeft = 5; document.getElementById('adTimer').innerText = timeLeft;
+    let timer = setInterval(() => { timeLeft--; document.getElementById('adTimer').innerText = timeLeft; if(timeLeft <= 0) { clearInterval(timer); document.getElementById('adSimulator').classList.add('hidden'); grantReward(activeAdReward); } }, 1000);
+}
+function grantReward(type) {
+    if (type === 'warp') { let earned = 500; BuildingsDB.forEach(b => { if(b.type === 'auto' && GameData.buildings[b.id] > 0) earned += Math.floor(900 / (b.cycleTime/cache.speedMult)) * getBuildingYield(b) * GameData.premiumMult; }); addMoney(earned * eventMultiplier); showToast("🚀"); } 
+    updateUI();
+}
+
+// === UIs Renderers ===
+function renderQuests() {
+    let div = document.getElementById('dailyQuestsList'); div.innerHTML = ''; const L = Langs[currentLang];
+    GameData.quests.list.forEach((q, i) => {
+        let desc = q.id === 'q1' ? L.q1d : L.q2d;
+        let btnStr = q.claimed ? `<button class="btn" style="opacity:0.5" disabled>${L.qDone}</button>` : (q.prog >= q.target ? `<button class="btn btn-gem" onclick="claimQuest(${i})">${L.qClaim} ${q.reward}💎</button>` : `<div style="font-size:12px; color:#525876; text-align:center;">${Math.floor(q.prog)}/${q.target}</div>`);
+        div.innerHTML += `<div class="daily-box"><div style="font-weight:bold; font-size:13px;">${desc}</div><div style="margin-top:10px;">${btnStr}</div></div>`;
+    });
+}
+function renderSkills() {
+    document.getElementById('ppDisplay').innerText = GameData.pp; document.getElementById('pendingPP').innerText = calcPendingPP();
+    let div = document.getElementById('skillTreeList'); div.innerHTML = '';
+    for(let tier=1; tier<=2; tier++) {
+        div.innerHTML += `<h4 style="color:var(--accent); margin:10px 0; text-align:right;">Tier ${tier}</h4>`;
+        SkillsDB.filter(s => s.tier === tier).forEach(s => {
+            let lvl = GameData.skills[s.id] || 0; let cost = Math.floor(s.costBase * Math.pow(s.costMult, lvl)); let maxed = lvl >= s.max;
+            div.innerHTML += `<div class="skill-node"><div style="font-weight:bold; color:var(--prestige); font-size:14px;">${s.name[currentLang]} <span style="font-size:11px; color:#fff;">[${lvl}/${s.max}]</span></div><div style="font-size:11px; color:#a1a1aa; margin:4px 0;">${s.desc[currentLang]}</div><button class="btn btn-prestige" style="padding:6px; font-size:11px; ${maxed?'opacity:0.5':''}" onclick="buySkill('${s.id}')" ${maxed?'disabled':''}>${maxed?'MAX': (currentLang==='ar'?'ترقية':'Upg') + ' ('+cost+' PP)'}</button></div>`;
+        });
+    }
+}
+function renderStocks() {
+    let div = document.getElementById('stockList'); div.innerHTML = ''; const L = Langs[currentLang];
+    StocksDB.forEach(s => {
+        let isUp = s.trend > 0; let own = s.owned || 0;
+        let maxHist = Math.max(...s.history, 1);
+        let chartHTML = s.history.map(p => `<div class="chart-bar" style="height:${(p/maxHist)*100}%; background:${s.history[s.history.length-1]>=s.history[0]?'var(--primary)':'var(--danger)'}"></div>`).join('');
+        
+        div.innerHTML += `<div class="item-card stock-card ${isUp?'':'stock-down'}">
+            <div class="stock-header" style="width:100%;">
+                <div class="item-info"><div class="item-name">${s.name[currentLang]}</div><div style="font-size:17px; font-weight:bold; color:${isUp?'var(--primary)':'var(--danger)'};">${formatNum(s.price)} 💰 ${isUp?'▲':'▼'}</div><div style="font-size:11px; color:#a1a1aa;">${currentLang==='ar'?'تملك:':'Own:'} ${own}</div></div>
+                <div class="chart-container">${chartHTML}</div>
+            </div>
+            <div style="display:flex; gap:10px; width:100%; margin-top:5px;">
+                <button class="btn" style="padding:6px; font-size:12px;" onclick="buyStock('${s.id}')">${L.buy}</button>
+                <button class="btn" style="padding:6px; font-size:12px; background:#222538; color:#fff;" onclick="sellStock('${s.id}')">${L.sell}</button>
+            </div>
         </div>`;
     });
+}
+function renderInbox() {
+    let div = document.getElementById('inboxList'); div.innerHTML = ''; let count = 0;
+    StoryInbox.forEach(m => {
+        if(GameData.inboxProgress.includes(m.id)) {
+            count++; let isC = m.claimed;
+            div.innerHTML = `<div class="inbox-msg" style="${isC?'opacity:0.4':''}"><div style="font-weight:bold; color:var(--accent);">${m.title[currentLang]}</div><div style="margin:4px 0; color:#cbd5e1; font-size:11px;">"${m.text[currentLang]}"</div>${!isC && m.reward>0 ? `<button class="btn" style="padding:4px; font-size:11px; background:${m.isGem?'var(--gem)':'var(--primary)'}" onclick="claimMail('${m.id}')">+${m.reward} ${m.isGem?'💎':'💰'}</button>` : ''}</div>` + div.innerHTML;
+        }
+    });
+    if(count === 0) div.innerHTML = `<div style='text-align:center; color:#525876; font-size:12px;'>${currentLang==='ar'?'البريد فارغ...':'Empty...'}</div>`;
+}
+function renderLeaderboard() {
+    let div = document.getElementById('leaderboardList'); const L = Langs[currentLang];
+    let mockData = [ {n:"Crypton_99", l:145, w:"521Qa"}, {n:"Alpha_Venture", l:98, w:"12T"}, {n:"Fadi_Tycoon", l:85, w:"850B"} ];
+    div.innerHTML = `<div class="item-card" style="border-color:var(--primary);"><div class="item-info"><div style="color:var(--primary); font-weight:bold;">${L.you} (${GameData.companyName || 'Corp'})</div><div style="font-size:11px;">${L.lvlText} ${GameData.level}</div></div><div class="item-action">${formatNum(GameData.totalEarned)} 💰</div></div>`;
+    mockData.forEach((p,i) => { div.innerHTML += `<div class="item-card"><div class="item-info"><div style="font-weight:bold; color:#a1a1aa;">#${i+1} ${p.n}</div><div style="font-size:11px;">Lvl: ${p.l}</div></div><div class="item-action" style="color:#525876;">${p.w} 💰</div></div>`; });
+}
+function renderPremiumStore() {
+    let div = document.getElementById('premiumStoreList'); div.innerHTML = '';
+    PremiumStoreDB.forEach(p => { div.innerHTML += `<div class="item-card" style="border-color:var(--gem); background:rgba(255,45,85,0.02);"><div class="item-icon" style="color:var(--gem);">💎</div><div class="item-info"><div class="item-name" style="color:var(--gem);">${p.title[currentLang]}</div><div style="font-size:11px; color:#a1a1aa;">${p.desc[currentLang]}</div></div><button class="btn btn-gem" style="width:70px; padding:6px; font-size:11px;" onclick="buyPremium('${p.id}')">${p.cost}💎</button></div>`; });
+}
+function buyPremium(id) { initAudio(); let p = PremiumStoreDB.find(x => x.id === id); if (GameData.gems >= p.cost) { GameData.gems -= p.cost; GameData.premiumMult *= p.mult; p.cost = Math.floor(p.cost*2); soundGem(); calculateStats(); renderPremiumStore(); renderLists(); updateUI(); showToast("✔"); } }
 
-    const uList = document.getElementById('upgradesList'); if(!uList) return; uList.innerHTML = '';
-    UpgradesDB.forEach(u => {
-        if (GameData.upgrades[u.id]) return; 
-        uList.innerHTML += `
-        <div class="item-card ${GameData.money >= u.cost ? '' : 'disabled'}" onclick="buyUpgrade('${u.id}')" id="card-${u.id}">
-            <div class="item-icon" style="background:rgba(59, 130, 246, 0.1); border-color:var(--accent);">${u.icon}</div>
-            <div class="item-info"><div class="item-name" style="color:var(--accent);">${u.name}</div><div class="item-desc">${u.desc}</div></div>
-            <div class="item-action"><span class="item-cost">${formatNum(u.cost)} 💰</span></div>
+function renderLists() {
+    const bList = document.getElementById('buildingsList'); bList.innerHTML = ''; const L = Langs[currentLang];
+    BuildingsDB.forEach(b => {
+        let lvl = GameData.buildings[b.id] || 0; let cTime = b.cycleTime / cache.speedMult; let pwrOut = getBuildingYield(b) * GameData.premiumMult;
+        let statTxt = b.type==='click'?`+${formatNum(pwrOut)}`:`+${formatNum(pwrOut)}/${cTime<1?cTime.toFixed(2):cTime.toFixed(1)}s`; 
+        
+        let nextMs = getNextMilestone(lvl);
+        let lastMs = 0; for(let i=Milestones.length-1; i>=0; i--) { if(lvl >= Milestones[i]) { lastMs = Milestones[i]; break; } }
+        let msPct = nextMs === "MAX" ? 100 : ((lvl - lastMs) / (nextMs - lastMs)) * 100;
+        
+        bList.innerHTML += `<div class="item-card" style="flex-direction:column; align-items:stretch;" id="card-${b.id}">
+            <div style="display:flex; align-items:center; gap:12px; width:100%;" onclick="buyBuilding('${b.id}')">
+                <div class="item-icon">${b.icon}</div><div class="item-info"><div class="item-name">${b.name[currentLang]}</div><div class="item-stats">⚡ ${statTxt}</div></div>
+                <div class="item-action"><span class="item-cost" id="cost-${b.id}">0</span><span class="item-lvl" style="background:#050508; padding:2px 6px; border-radius:6px; font-size:10px; border:1px solid #1f2235; color:var(--primary);">Lvl ${lvl}</span></div>
+            </div>
+            <div class="ms-container"><div class="ms-fill" style="width:${msPct}%"></div><div class="ms-text">${nextMs==="MAX" ? "MAX MILESTONE" : (lvl + " / " + nextMs + " " + L.msNext)}</div></div>
         </div>`;
     });
 }
 
 function updateUI() {
-    let moneyDisp = document.getElementById('moneyDisplay'); if(!moneyDisp) return; moneyDisp.innerText = formatNum(GameData.money);
-    document.getElementById('incomeDisplay').innerText = formatNum(cache.passiveIncome);
-    BuildingsDB.forEach(b => { let card = document.getElementById(`card-${b.id}`); if(card) card.classList.toggle('disabled', GameData.money < getBuildingCost(b)); });
-    UpgradesDB.forEach(u => { let card = document.getElementById(`card-${u.id}`); if(card) card.classList.toggle('disabled', GameData.money < u.cost); });
-    needsUIUpdate = false;
+    document.getElementById('moneyDisplay').innerText = formatNum(GameData.money); document.getElementById('gemsDisplay').innerText = GameData.gems;
+    document.getElementById('incomeDisplay').innerText = formatNum(cache.passiveIncome * (eventMultiplier > 0 ? eventMultiplier : 1));
+    document.getElementById('pendingPP').innerText = calcPendingPP();
+    BuildingsDB.forEach(b => { 
+        let card = document.getElementById(`card-${b.id}`); if(!card) return;
+        let count = currentBuyMult; if (currentBuyMult === 'max') count = Math.max(1, getMaxAffordable(b));
+        let c = getCumulativeCost(b, count); let canAfford = GameData.money >= c;
+        if (currentBuyMult === 'max' && getMaxAffordable(b) === 0) canAfford = false;
+        card.classList.toggle('disabled', !canAfford); document.getElementById(`cost-${b.id}`).innerText = formatNum(c) + " 💰";
+    }); needsUIUpdate = false;
 }
 
-function switchTab(tabId) {
-    initAudio(); soundClick();
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    let targetTab = document.getElementById(tabId); if(targetTab) targetTab.classList.add('active');
-    if(event && event.currentTarget) event.currentTarget.classList.add('active');
-}
+function switchTab(tabId, el) { initAudio(); document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); if(el) el.classList.add('active'); }
 
-let lastTime = performance.now(); let autoClickTimer = 0; let recalcTimer = 0;
+// === Game Loop ===
+let lastTime = performance.now(); let recalcTimer = 0;
 function gameLoop(currentTime) {
-    let dt = (currentTime - lastTime) / 1000; lastTime = currentTime; let now = Date.now();
-    if(dt > 2) dt = 2;
-    if (GameData.boosts.autoEnd > now) { autoClickTimer += dt; if(autoClickTimer > 0.1) { manualClick(null); autoClickTimer = 0; } }
-
+    let dt = (currentTime - lastTime) / 1000; lastTime = currentTime; if(dt > 2) dt = 2;
+    if(currentEventTimer > 0) { currentEventTimer -= dt; if(currentEventTimer <= 0) { eventMultiplier = 1; document.getElementById('eventBanner').style.display = 'none'; showToast(Langs[currentLang].evtEnd); updateUI();} }
     BuildingsDB.forEach(b => {
         if(b.type === 'auto' && GameData.buildings[b.id] > 0) {
-            GameData.timers[b.id] += dt; let cTime = b.cycleTime;
-            if (GameData.timers[b.id] >= cTime) {
-                let cycles = Math.floor(GameData.timers[b.id] / cTime); GameData.timers[b.id] -= cycles * cTime;
-                let yieldAmt = getBuildingYield(b) * cycles; if (GameData.boosts.x2End > now) yieldAmt *= 2; addMoney(yieldAmt);
-            }
-            let bg = document.getElementById(`bg-${b.id}`); if(bg) bg.style.width = ((GameData.timers[b.id] / cTime) * 100) + '%';
+            GameData.timers[b.id] += dt; let cTime = b.cycleTime / cache.speedMult;
+            if (GameData.timers[b.id] >= cTime) { let cycles = Math.floor(GameData.timers[b.id] / cTime); GameData.timers[b.id] -= cycles * cTime; addMoney(getBuildingYield(b) * GameData.premiumMult * cycles * eventMultiplier); }
         }
     });
-
     recalcTimer += dt;
-    if (recalcTimer > 1) { updateBoostsUI(); calculateStats(); updateUI(); recalcTimer = 0; } 
-    else if(needsUIUpdate) { let moneyDisp = document.getElementById('moneyDisplay'); if(moneyDisp) moneyDisp.innerText = formatNum(GameData.money); needsUIUpdate = false; }
+    if (recalcTimer > 0.6) { calculateStats(); updateUI(); recalcTimer = 0; } 
+    else if(needsUIUpdate) { document.getElementById('moneyDisplay').innerText = formatNum(GameData.money); document.getElementById('gemsDisplay').innerText = GameData.gems; needsUIUpdate = false; }
     requestAnimationFrame(gameLoop);
 }
-
-const style = document.createElement('style'); style.innerHTML = `@keyframes flash { 0% { background: #fff; } 100% { background: var(--bg); } }`; document.head.appendChild(style);
 window.onload = initGame;
 </script>
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-3574836580564688" crossorigin="anonymous"></script>
-<div style="position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; z-index: 9999;">
+<div style="position: fixed; top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; z-index: 9999;">
     <ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px" data-ad-client="ca-app-pub-3574836580564688" data-ad-slot="6203058254"></ins>
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 </div>
